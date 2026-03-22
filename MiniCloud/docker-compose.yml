@@ -1,0 +1,320 @@
+networks:
+  frontend-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.1.0/24
+  backend-net:
+    driver: bridge
+    internal: true
+    ipam:
+      config:
+        - subnet: 10.10.2.0/24
+  mgmt-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.3.0/24
+
+secrets:
+  db_root_password:
+    file: ./secrets/db_root_password.txt
+  db_password:
+    file: ./secrets/db_password.txt
+  kc_admin_password:
+    file: ./secrets/kc_admin_password.txt
+  storage_root_user:
+    file: ./secrets/storage_root_user.txt
+  storage_root_pass:
+    file: ./secrets/storage_root_pass.txt
+
+services:
+  dns:
+    build: ./bind9
+    container_name: minicloud-dns
+    networks:
+      mgmt-net:
+        ipv4_address: 10.10.3.53
+    # Mount chọn lọc từng file cấu hình — không ghi đè toàn bộ /etc/bind,
+    # để image giữ rndc.key và file sinh nội bộ khác trong container.
+    volumes:
+      - ./bind9/named.conf:/etc/bind/named.conf:ro
+      - ./bind9/named.conf.options:/etc/bind/named.conf.options:ro
+      - ./bind9/named.conf.local:/etc/bind/named.conf.local:ro
+      - ./bind9/zones/db.cloud.local:/etc/bind/zones/db.cloud.local:ro
+    ports:
+      - "53:53/udp"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "dig @127.0.0.1 localhost || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  proxy:
+    image: nginx:alpine
+    container_name: minicloud-proxy
+    networks:
+      frontend-net:
+        ipv4_address: 10.10.1.10
+      mgmt-net:
+        ipv4_address: 10.10.3.10
+    dns:
+      - 10.10.3.53
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    restart: unless-stopped
+    depends_on:
+      web:
+        condition: service_healthy
+      app:
+        condition: service_healthy
+      auth:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  web:
+    build: ./web
+    container_name: minicloud-web
+    networks:
+      frontend-net:
+        ipv4_address: 10.10.1.11
+      mgmt-net:
+        ipv4_address: 10.10.3.11
+    dns:
+      - 10.10.3.53
+    restart: unless-stopped
+    depends_on:
+      dns:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  app:
+    build: ./app
+    container_name: minicloud-app
+    networks:
+      frontend-net:
+        ipv4_address: 10.10.1.12
+      backend-net:
+        ipv4_address: 10.10.2.12
+      mgmt-net:
+        ipv4_address: 10.10.3.12
+    dns:
+      - 10.10.3.53
+    environment:
+      DB_USER: ${DB_USER:-admin}
+    secrets:
+      - db_password
+    volumes:
+      - ./app:/app
+    working_dir: /app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      dns:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8081/api/hello || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  auth:
+    build: ./auth
+    container_name: minicloud-auth
+    networks:
+      frontend-net:
+        ipv4_address: 10.10.1.13
+      backend-net:
+        ipv4_address: 10.10.2.13
+      mgmt-net:
+        ipv4_address: 10.10.3.13
+    dns:
+      - 10.10.3.53
+    environment:
+      KC_HEALTH_ENABLED: "true"
+      # Phục vụ và redirect dưới /auth (giống Keycloak cũ) — khớp location /auth/ trên Nginx
+      KC_HTTP_RELATIVE_PATH: /auth
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_STRICT: "false"
+      KC_PROXY: edge
+      KC_DB: mariadb
+      KC_DB_URL: jdbc:mariadb://db.cloud.local:3306/${DB_NAME:-minicloud}
+      KC_DB_USERNAME: ${DB_USER:-admin}
+      KC_DB_PASSWORD: "secure_db_password_123!"
+      KC_PROXY_HEADERS: xforwarded
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: "keycloak_admin_super_secret_123!"
+    secrets:
+      - db_password
+      - kc_admin_password
+    command: start-dev --http-port 8080
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      dns:
+        condition: service_healthy
+    # Keycloak 26+: /health/ready nằm trên management port (9000), không phải HTTP app (8080).
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:9000/health/ready || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  db:
+    image: mariadb:10.11
+    container_name: minicloud-db
+    networks:
+      backend-net:
+        ipv4_address: 10.10.2.14
+      mgmt-net:
+        ipv4_address: 10.10.3.14
+    dns:
+      - 10.10.3.53
+    secrets:
+      - db_password
+      - db_root_password
+    environment:
+      MARIADB_DATABASE: ${DB_NAME:-minicloud}
+      MARIADB_USER: ${DB_USER:-admin}
+      MARIADB_PASSWORD_FILE: /run/secrets/db_password
+      MARIADB_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
+    restart: unless-stopped
+    depends_on:
+      dns:
+        condition: service_healthy
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "healthcheck.sh --connect --innodb_initialized"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  storage:
+    image: minio/minio
+    container_name: minicloud-storage
+    networks:
+      backend-net:
+        ipv4_address: 10.10.2.15
+      mgmt-net:
+        ipv4_address: 10.10.3.15
+    dns:
+      - 10.10.3.53
+    secrets:
+      - storage_root_user
+      - storage_root_pass
+    environment:
+      MINIO_ROOT_USER_FILE: /run/secrets/storage_root_user
+      MINIO_ROOT_PASSWORD_FILE: /run/secrets/storage_root_pass
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+    ports:
+      - "9001:9001"
+    depends_on:
+      dns:
+        condition: service_healthy
+    volumes:
+      - storage_data:/data
+    healthcheck:
+      # Image MinIO không có wget; dùng curl (có sẵn)
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:9000/minio/health/live || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  monitoring:
+    image: prom/prometheus:latest
+    container_name: minicloud-monitoring
+    networks:
+      mgmt-net:
+        ipv4_address: 10.10.3.16
+    dns:
+      - 10.10.3.53
+    restart: unless-stopped
+    depends_on:
+      dns:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9090/-/healthy || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  loki:
+    image: grafana/loki:latest
+    container_name: minicloud-loki
+    networks:
+      mgmt-net:
+        ipv4_address: 10.10.3.17
+    dns:
+      - 10.10.3.53
+    restart: unless-stopped
+    depends_on:
+      dns:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/usr/bin/loki", "-version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: minicloud-grafana
+    networks:
+      mgmt-net:
+        ipv4_address: 10.10.3.18
+    dns:
+      - 10.10.3.53
+    restart: unless-stopped
+    depends_on:
+      monitoring:
+        condition: service_healthy
+      loki:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: minicloud-node-exporter
+    networks:
+      mgmt-net:
+        ipv4_address: 10.10.3.19
+    dns:
+      - 10.10.3.53
+    restart: unless-stopped
+    depends_on:
+      dns:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9100 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  db_data:
+  storage_data:

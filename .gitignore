@@ -1,0 +1,23 @@
+# Secrets — không commit mật khẩu thật
+MiniCloud/secrets/*.txt
+
+# Env local
+MiniCloud/.env
+.env
+.env.local
+
+# Python
+**/__pycache__/
+*.py[cod]
+*$py.class
+.Python
+
+# Logs / tạm
+MiniCloud/error.log
+*.log
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

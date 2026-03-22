@@ -1,0 +1,19 @@
+acl "trusted" {
+    10.10.0.0/16;
+    127.0.0.0/8;
+};
+
+options {
+    directory "/var/cache/bind";
+    recursion yes;
+    allow-query { trusted; };
+    listen-on { any; };
+    listen-on-v6 { any; };
+    forwarders {
+        8.8.8.8;
+        1.1.1.1;
+    };
+    forward only;
+    dnssec-validation no;
+    auth-nxdomain no;    # conform to RFC1035
+};
