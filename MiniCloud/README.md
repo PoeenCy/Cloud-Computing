@@ -49,13 +49,13 @@ flowchart LR
     GF[Grafana]
     NE[Node Exporter]
   end
-  U -->|":80"| P
+  U -->|port 80| P
   P --> W
   P --> A
   P --> K
   A --> D
   K --> D
-  P -. DNS .cloud.local .-> DNS
+  P -.->|phân giải tên nội bộ| DNS
   W -.-> DNS
   A -.-> DNS
   K -.-> DNS
