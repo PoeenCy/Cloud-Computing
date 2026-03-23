@@ -3,32 +3,178 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MiniCloud — Dashboard</title>
+    <title>MiniCloud — Ngôn's Dashboard</title>
+    <!-- Tailwind CSS cho giao diện hiện đại -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Style tùy chỉnh nếu ông cần thêm trong assets/css/style.css -->
     <link rel="stylesheet" href="assets/css/style.css">
+    
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
 </head>
-<body>
-    <div class="container">
-        <h1>MiniCloud</h1>
-        <p>Khu vực dữ liệu từ API (đường dẫn tương đối → đi qua Proxy Nginx).</p>
+<body class="bg-slate-50 text-slate-900 antialiased">
 
-        <section id="student-section" aria-live="polite">
-            <h2>Danh sách sinh viên</h2>
-            <div id="student-list" class="box">Đang tải…</div>
-        </section>
+    <!-- Navigation Bar -->
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center text-white font-bold">M</div>
+                <span class="font-extrabold text-xl tracking-tight text-slate-900">MiniCloud</span>
+            </div>
+            <div class="hidden md:flex items-center gap-6 font-semibold text-sm text-slate-600">
+                <a href="#students" class="hover:text-orange-500 transition">Hệ thống</a>
+                <a href="#blogs" class="hover:text-orange-500 transition">Blog cá nhân</a>
+                <a href="http://localhost:3000" target="_blank" class="bg-slate-900 text-white px-4 py-2 rounded-full hover:bg-slate-700 transition">Grafana Dash</a>
+            </div>
+        </div>
+    </nav>
 
-        <hr>
+    <!-- Hero Section -->
+    <header class="max-w-7xl mx-auto px-6 py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center">
+        <div>
+            <h1 class="text-5xl md:text-6xl font-extrabold text-slate-900 leading-[1.1] mb-6">
+                Xin chào, <br> Tôi là <span class="text-orange-500 underline decoration-orange-200 decoration-8 underline-offset-4">Ngôn</span>.
+            </h1>
+            <p class="text-xl text-slate-500 leading-relaxed mb-8">
+                Frontend & UI/UX Specialist tại dự án MiniCloud. Đây là không gian tôi quản lý dữ liệu hệ thống và chia sẻ những câu chuyện đời thường.
+            </p>
+            <div class="flex gap-4">
+                <a href="#blogs" class="bg-orange-500 text-white px-8 py-3 rounded-xl font-bold hover:bg-orange-600 transition shadow-lg shadow-orange-200">Xem Blog</a>
+                <a href="#students" class="bg-white border border-slate-200 px-8 py-3 rounded-xl font-bold hover:bg-slate-50 transition">Check Hệ Thống</a>
+            </div>
+        </div>
+        <div class="relative group">
+            <div class="absolute inset-0 bg-orange-200 rounded-[2rem] rotate-3 group-hover:rotate-6 transition duration-500"></div>
+            <!-- Ông bỏ ảnh cá nhân vào assets/img/avatar.jpg rồi đổi src nhé -->
+            <img src="https://i.pravatar.cc/500?u=ngon" alt="Ngôn Cloud" class="relative z-10 w-full aspect-square object-cover rounded-[2rem] shadow-2xl transition group-hover:-rotate-3 duration-500">
+        </div>
+    </header>
 
-        <section>
-            <h2>Blog</h2>
-            <ul class="blog-list">
-                <!-- TODO (Ngôn): Thiết kế bố cục, typography, thêm blog2.html / blog3.html và liên kết tại đây -->
-                <li><a href="blog/blog1.html">Blog mẫu 1</a></li>
-                <li>Bài blog 2 — TODO</li>
-                <li>Bài blog 3 — TODO</li>
-            </ul>
-        </section>
-    </div>
+    <!-- Student System Section -->
+    <section id="students" class="bg-slate-900 py-24">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-white mb-2 tracking-tight italic decoration-orange-500 decoration-4 underline underline-offset-8">Dữ liệu sinh viên</h2>
+                    <p class="text-slate-400">Kết nối trực tiếp với Backend API qua Nginx Proxy</p>
+                </div>
+                <div class="flex gap-2 text-xs font-mono">
+                    <span class="px-3 py-1 bg-green-500/20 text-green-400 rounded-full border border-green-500/30 font-bold">API: /api/student</span>
+                    <span class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full border border-blue-500/30 font-bold">Status: Online</span>
+                </div>
+            </div>
 
-    <script src="assets/js/main.js"></script>
+            <!-- Student List Grid -->
+            <div id="student-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Data will be injected here from main.js or the script below -->
+                <div class="col-span-full py-12 text-center text-slate-500 animate-pulse">
+                    Đang tải dữ liệu từ server ông Việt...
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Blog Section -->
+    <section id="blogs" class="max-w-7xl mx-auto px-6 py-24">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">Blog cá nhân</h2>
+            <div class="w-20 h-1.5 bg-orange-500 mx-auto rounded-full"></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+            <!-- Travel Blog -->
+            <div class="group cursor-pointer">
+                <div class="relative h-[400px] rounded-3xl overflow-hidden mb-6 shadow-xl">
+                    <img src="https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&q=80&w=800" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent p-8 flex flex-col justify-end">
+                        <span class="bg-orange-500 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full w-fit mb-4">Du lịch</span>
+                        <h3 class="text-2xl font-bold text-white mb-2 leading-tight">Đà Lạt: Nơi Tiếng Chuông Gió Gặp Gỡ Những Kẻ Mộng Mơ</h3>
+                        <a href="blog/travel.html" class="text-white font-bold flex items-center gap-2 hover:gap-4 transition-all">Đọc bài này <span>→</span></a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tech Blog -->
+            <div class="group cursor-pointer">
+                <div class="relative h-[400px] rounded-3xl overflow-hidden mb-6 shadow-xl">
+                    <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent p-8 flex flex-col justify-end">
+                        <span class="bg-cyan-500 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full w-fit mb-4">Công nghệ</span>
+                        <h3 class="text-2xl font-bold text-white mb-2 leading-tight">Docker & Microservices: Tối ưu UI/UX thực thụ</h3>
+                        <a href="blog/tech.html" class="text-white font-bold flex items-center gap-2 hover:gap-4 transition-all">Tìm hiểu ngay <span>→</span></a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Food Blog -->
+            <div class="group cursor-pointer">
+                <div class="relative h-[400px] rounded-3xl overflow-hidden mb-6 shadow-xl">
+                    <img src="https://images.unsplash.com/photo-1567037144414-0d703908878b?auto=format&fit=crop&q=80&w=800" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
+                    <div class="absolute inset-0 bg-gradient-to-t from-rose-900/80 via-transparent to-transparent p-8 flex flex-col justify-end">
+                        <span class="bg-rose-500 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full w-fit mb-4">Ẩm thực</span>
+                        <h3 class="text-2xl font-bold text-white mb-2 leading-tight">Bún Đậu Hàng Khay: Tinh Hoa Mắm Tôm Phố Cổ</h3>
+                        <a href="blog/food.html" class="text-white font-bold flex items-center gap-2 hover:gap-4 transition-all">Khám phá <span>→</span></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 border-t border-slate-200 text-center text-sm text-slate-400">
+        <p>© 2024 Ngôn's MiniCloud Personal Project. Built with ❤️ and Nginx.</p>
+    </footer>
+
+    <!-- Script kết nối API sinh viên (Tương tự assets/js/main.js nhưng tích hợp sẵn) -->
+    <script>
+        async function loadStudents() {
+            try {
+                // Gọi API từ Backend của ông Việt qua Proxy Nginx
+                const response = await fetch('/api/student');
+                const data = await response.json();
+
+                const container = document.getElementById('student-list');
+                container.innerHTML = ''; // Xóa trạng thái Loading
+
+                data.forEach(s => {
+                    const card = `
+                        <div class="bg-white p-6 rounded-[1.5rem] shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 border border-slate-100 flex flex-col justify-between">
+                            <div>
+                                <div class="w-10 h-10 bg-orange-50 rounded-full flex items-center justify-center text-orange-600 font-bold mb-4">
+                                    ${s.name.charAt(0)}
+                                </div>
+                                <h4 class="text-lg font-bold text-slate-900 mb-1 leading-tight">${s.name}</h4>
+                                <p class="text-xs font-mono text-slate-400 mb-4">ID: ${s.id}</p>
+                            </div>
+                            <div class="flex items-center justify-between mt-4 pt-4 border-t border-slate-50">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active</span>
+                                <a href="${s.github || '#'}" class="text-slate-900 hover:text-orange-500 transition font-bold text-xs underline">Github →</a>
+                            </div>
+                        </div>
+                    `;
+                    container.innerHTML += card;
+                });
+            } catch (error) {
+                console.error('Lỗi khi lấy dữ liệu:', error);
+                document.getElementById('student-list').innerHTML = `
+                    <div class="col-span-full py-12 text-center text-rose-500 bg-rose-50 rounded-3xl border border-rose-100">
+                        <p class="font-bold">⚠️ Không thể kết nối với Backend!</p>
+                        <p class="text-xs">Kiểm tra xem ông Việt đã khởi động Docker hay chưa.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Tự động chạy khi load trang
+        document.addEventListener('DOMContentLoaded', loadStudents);
+    </script>
 </body>
 </html>
