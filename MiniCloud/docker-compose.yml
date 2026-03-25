@@ -168,9 +168,9 @@ services:
         condition: service_healthy
       dns:
         condition: service_healthy
-    # Keycloak 26+: /health/ready nằm trên management port (9000), không phải HTTP app (8080).
+    # Khi dùng KC_HTTP_RELATIVE_PATH=/auth, health endpoint nằm ở /auth/health/ready trên management port.
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://127.0.0.1:9000/health/ready || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:9000/auth/health/ready || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3

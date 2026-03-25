@@ -151,7 +151,7 @@ Các file trong `./secrets/` được mount vào container dưới dạng **Dock
 
 - `depends_on: condition: service_healthy` đảm bảo **DB**, **DNS**, rồi **App/Web/Auth** sẵn sàng trước khi **Proxy** lên.
 - `start_period` (App: 15s, Auth: 30s) giảm báo sai **unhealthy** khi máy tải cao.
-- Keycloak **26+**: readiness HTTP qua **`curl` tới `127.0.0.1:9000/health/ready`** (management port), không dùng `:8080` vì endpoint readiness không nằm trên cổng app.
+- Keycloak **26+**: readiness HTTP qua management port `9000`; với cấu hình `KC_HTTP_RELATIVE_PATH=/auth`, health URL đúng là **`127.0.0.1:9000/auth/health/ready`**.
 
 ### 7.5 Image Auth tùy biến (`auth/Dockerfile`)
 
@@ -234,7 +234,7 @@ docker compose down
 | Keycloak (qua proxy) | `http://localhost/auth/` |
 | Grafana | `http://localhost:3000/` |
 
-*(MinIO Console không có cổng host trong compose — chỉ dùng trong mạng Docker hoặc thêm `ports` vào service `storage` nếu cần.)*
+*(MinIO Console đã map cổng host: `http://localhost:9001/`.)*
 
 ### 10.6 Xem log khi lỗi
 
