@@ -10,12 +10,12 @@ def _read_db_password_secret():
         return f.read().strip()
 
 def get_db_connection():
-    """Kết nối MariaDB nội bộ tại db.cloud.local, database studentdb."""
+    """Kết nối MariaDB nội bộ tại service 'db', database studentdb."""
     user = os.environ.get('DB_USER', 'admin')
     password = _read_db_password_secret()
-    # TODO (Việt): Bổ sung try/except, retry, hoặc connection pool nếu cần production
+    
     return mysql.connector.connect(
-        host='db.cloud.local',
+        host='db', # Đã sửa tại đây
         port=3306,
         user=user,
         password=password,
