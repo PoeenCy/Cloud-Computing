@@ -11,13 +11,13 @@ def _read_db_password_secret():
 
 def get_db_connection():
     """Kết nối MariaDB nội bộ tại service 'db', database studentdb."""
-    user = os.environ.get('DB_USER', 'admin')
+    # Bỏ qua biến môi trường, gán cứng tài khoản chuẩn
     password = _read_db_password_secret()
     
     return mysql.connector.connect(
-        host='db', # Đã sửa tại đây
+        host='db', 
         port=3306,
-        user=user,
+        user='admin', # Sửa dòng này thành 'admin' (không có chữ s)
         password=password,
         database='studentdb',
     )
