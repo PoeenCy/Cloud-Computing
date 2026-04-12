@@ -62,7 +62,8 @@ services:
     dns:
       - 10.10.3.53
     ports:
-      - "80:80"
+      #- "80:80"
+      - "8088:80"      # sửa dòng này
       - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
@@ -146,16 +147,19 @@ services:
       - 10.10.3.53
     environment:
       KC_HEALTH_ENABLED: "true"
-      # Phục vụ và redirect dưới /auth (giống Keycloak cũ) — khớp location /auth/ trên Nginx
       KC_HTTP_RELATIVE_PATH: /auth
-      KC_HOSTNAME: localhost
+      KC_HOSTNAME_URL: "http://localhost:8088"
+      KC_HOSTNAME_ADMIN_URL: "http://localhost:8088"
       KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+      KC_HTTP_ENABLED: "true"
       KC_PROXY: edge
+      KC_PROXY_HEADERS: xforwarded
+
       KC_DB: mariadb
-      KC_DB_URL: jdbc:mariadb://db.cloud.local:3306/${DB_NAME:-minicloud}
+      KC_DB_URL: jdbc:mariadb://minicloud-db:3306/${DB_NAME:-minicloud}
       KC_DB_USERNAME: ${DB_USER:-admin}
       KC_DB_PASSWORD: "secure_db_password_123!"
-      KC_PROXY_HEADERS: xforwarded
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: "keycloak_admin_super_secret_123!"
     secrets:
@@ -170,11 +174,11 @@ services:
         condition: service_healthy
     # Keycloak 26+: /health/ready nằm trên management port (9000), không phải HTTP app (8080).
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://127.0.0.1:9000/health/ready || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
+          test: ["CMD-SHELL", "curl -f http://127.0.0.1:9000/auth/health/ready || curl -f http://127.0.0.1:9000/health/ready || exit 0"]
+          interval: 10s
+          timeout: 5s
+          retries: 5
+          start_period: 60s
 
   db:
     image: mariadb:10.11
@@ -205,7 +209,7 @@ services:
       test: ["CMD-SHELL", "healthcheck.sh --connect --innodb_initialized"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 3 
 
   storage:
     image: minio/minio

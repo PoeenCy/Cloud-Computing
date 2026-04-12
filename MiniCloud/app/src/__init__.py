@@ -12,6 +12,8 @@ def create_app():
     # Trỏ tới file JSON vừa tạo
     app.config['OIDC_CLIENT_SECRETS'] = 'client_secrets.json'
     
+    # --- THÊM DÒNG NÀY ĐỂ FIX LỖI ISSUER MISMATCH TRONG DOCKER ---
+    app.config['OIDC_VALIDATE_ISSUER'] = False
     # Gắn OIDC vào app
     oidc.init_app(app)
     

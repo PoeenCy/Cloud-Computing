@@ -1,21 +1,46 @@
 /**
  * MiniCloud System - Main Frontend Logic
  * Responsible for: Fetching student data, handling UI states, and system notifications.
+ * Updated: Tích hợp Keycloak OIDC cho luồng Login & Fetch API.
  */
 
 // 1. Cấu hình các hằng số
 const API_ENDPOINT = '/api/student'; // Đường dẫn tương đối qua Nginx Proxy
 const STUDENT_CONTAINER_ID = 'student-list';
 
+// 2. Cấu hình Keycloak Client
+const keycloak = new Keycloak({
+   /* url: 'http://localhost:8088/auth',*/
+    url: 'http://localhost:8088/auth',
+    realm: 'realm_52300267', // Realm theo MSSV của bạn
+    clientId: 'flask-app'
+});
+
 /**
  * Hàm khởi tạo khi trang web đã sẵn sàng
  */
 document.addEventListener('DOMContentLoaded', () => {
     console.log("🚀 MiniCloud Dashboard đã sẵn sàng!");
-    loadStudentData();
-    
-    // Thêm hiệu ứng cuộn mượt cho các link nội bộ
     setupSmoothScroll();
+
+    // Thêm checkLoginIframe: false vào object cấu hình
+    keycloak.init({ 
+        onLoad: 'login-required', 
+        checkLoginIframe: false 
+    }).then(function(authenticated) {
+        if (authenticated) {
+            console.log("✅ Đăng nhập Keycloak thành công!");
+            loadStudentData(); 
+        } else {
+            console.error("❌ Không thể xác thực với Keycloak.");
+        }
+    }).catch(function(error) {
+        console.error("❌ Lỗi khởi tạo Keycloak:", error);
+        const container = document.getElementById(STUDENT_CONTAINER_ID);
+        if (container) {
+            renderErrorState(container, "Không thể kết nối đến máy chủ xác thực Keycloak.");
+        }
+    });
 });
 
 /**
@@ -33,9 +58,18 @@ async function loadStudentData() {
     `;
 
     try {
-        const response = await fetch(API_ENDPOINT);
+        // Gắn Token động vào Header Authorization
+        const response = await fetch(API_ENDPOINT, {
+            headers: { 
+                'Authorization': `Bearer ${keycloak.token}`,
+                'Accept': 'application/json'
+            }
+        });
         
         if (!response.ok) {
+            if (response.status === 401) {
+                throw new Error("401 Unauthorized: Thiếu token hoặc Token đã hết hạn.");
+            }
             throw new Error(`Lỗi HTTP: ${response.status}`);
         }
 
@@ -58,7 +92,7 @@ async function loadStudentData() {
 
     } catch (error) {
         console.error("❌ Lỗi Fetch API:", error);
-        renderErrorState(container);
+        renderErrorState(container, error.message);
     }
 }
 
@@ -81,11 +115,10 @@ function createStudentCard(student) {
             <h4 class="text-lg font-extrabold text-slate-900 mb-1 leading-tight group-hover:text-orange-600 transition">${student.name}</h4>
             <p class="text-xs font-mono text-slate-400 mb-4 tracking-tighter">STUDENT_ID: ${student.id}</p>
             
-            <!-- Phần sáng tạo thêm: Thông tin bổ sung nếu có -->
             <div class="space-y-2">
                 <div class="flex items-center gap-2 text-[11px] text-slate-500">
                     <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                    <span>Chuyên ngành: Công nghệ phần mềm</span>
+                    <span>Chuyên ngành: ${student.major || 'Công nghệ phần mềm'}</span>
                 </div>
             </div>
         </div>
@@ -109,7 +142,7 @@ function createStudentCard(student) {
 /**
  * Hiển thị giao diện khi lỗi (Error State)
  */
-function renderErrorState(container) {
+function renderErrorState(container, customMessage = "") {
     container.innerHTML = `
         <div class="col-span-full py-12 px-6 text-center bg-rose-50 rounded-3xl border border-rose-100 shadow-inner">
             <div class="text-rose-500 mb-4">
@@ -117,10 +150,10 @@ function renderErrorState(container) {
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             </div>
-            <h3 class="text-lg font-bold text-rose-900 mb-2">Không thể kết nối Backend</h3>
-            <p class="text-sm text-rose-600 mb-6">Có vẻ như ông Việt chưa bật MariaDB hoặc Flask rồi. Ông kiểm tra lại Docker nhé!</p>
-            <button onclick="loadStudentData()" class="bg-rose-600 text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-rose-700 transition shadow-lg shadow-rose-200">
-                Thử kết nối lại
+            <h3 class="text-lg font-bold text-rose-900 mb-2">Không thể lấy dữ liệu</h3>
+            <p class="text-sm text-rose-600 mb-6">${customMessage || "Có vẻ như Backend hoặc hệ thống mạng đang gặp sự cố. Ông kiểm tra lại Docker nhé!"}</p>
+            <button onclick="window.location.reload()" class="bg-rose-600 text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-rose-700 transition shadow-lg shadow-rose-200">
+                Tải lại trang
             </button>
         </div>
     `;

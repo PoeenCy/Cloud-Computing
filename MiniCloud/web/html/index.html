@@ -10,7 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <!-- Style tùy chỉnh nếu ông cần thêm trong assets/css/style.css -->
     <link rel="stylesheet" href="assets/css/style.css">
-    
+    <!--<script src="http://localhost:8088/auth/js/keycloak.js"></script> -->    <!-- Viet_update 12/04-->
+    <script src="https://cdn.jsdelivr.net/npm/keycloak-js@latest/dist/keycloak.min.js"></script>
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .glass-card {
@@ -134,7 +135,7 @@
     </footer>
 
     <!-- Script kết nối API sinh viên (Tương tự assets/js/main.js nhưng tích hợp sẵn) -->
-    <script>
+    <!-- <script>
         async function loadStudents() {
             try {
                 // Gọi API từ Backend của ông Việt qua Proxy Nginx
@@ -175,6 +176,7 @@
 
         // Tự động chạy khi load trang
         document.addEventListener('DOMContentLoaded', loadStudents);
-    </script>
+    </script> -->
+    <script src="assets/js/main.js"></script> <!-- Viet_update 12/04-->
 </body>
 </html>
