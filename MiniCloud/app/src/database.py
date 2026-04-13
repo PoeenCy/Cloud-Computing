@@ -11,7 +11,7 @@ def _read_db_password_secret():
         return f.read().strip()
 
 
-def get_db_connection():
+def get_db_connection(database=None):
     """Kết nối MariaDB qua DNS nội bộ db.cloud.local.
     Raise ConnectionError nếu secret thiếu hoặc DB không sẵn sàng.
     """
@@ -22,11 +22,11 @@ def get_db_connection():
 
     try:
         conn = mysql.connector.connect(
-            host='db.cloud.local',   # DNS nội bộ Bind9 — không hardcode IP
+            host='db.cloud.local',
             port=3306,
             user=os.environ.get('DB_USER', 'admin'),
             password=db_pass,
-            database=os.environ.get('DB_NAME', 'studentdb'),
+            database=database or os.environ.get('DB_NAME', 'studentdb'),
         )
         return conn
     except mysql.connector.Error as err:
