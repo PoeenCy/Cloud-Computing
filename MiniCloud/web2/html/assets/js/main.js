@@ -7,32 +7,15 @@
 const API_ENDPOINT = '/api/student'; // Đường dẫn tương đối qua Nginx Proxy
 const STUDENT_CONTAINER_ID = 'student-list';
 
-// 2. Cấu hình Keycloak Client
-const keycloak = new Keycloak({
-    url: 'http://localhost:8088/auth',
-    realm: 'realm_52300267',
-    clientId: 'flask-app'
-});
-
 /**
  * Hàm khởi tạo khi trang web đã sẵn sàng
  */
 document.addEventListener('DOMContentLoaded', () => {
     console.log("🚀 MiniCloud Dashboard đã sẵn sàng!");
+    loadStudentData();
+    
+    // Thêm hiệu ứng cuộn mượt cho các link nội bộ
     setupSmoothScroll();
-
-    keycloak.init({ onLoad: 'check-sso', checkLoginIframe: false })
-        .then(authenticated => {
-            if (authenticated) {
-                console.log("✅ Đăng nhập Keycloak thành công!");
-            }
-            // Load data dù đã đăng nhập hay chưa
-            loadStudentData();
-        })
-        .catch(err => {
-            console.warn("⚠️ Keycloak chưa cấu hình, load data trực tiếp:", err);
-            loadStudentData();
-        });
 });
 
 /**
@@ -40,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
  */
 async function loadStudentData() {
     const container = document.getElementById(STUDENT_CONTAINER_ID);
-
+    
     // Trạng thái đang tải (Loading State)
     container.innerHTML = `
         <div class="col-span-full py-20 text-center">
@@ -50,18 +33,14 @@ async function loadStudentData() {
     `;
 
     try {
-        const headers = { 'Accept': 'application/json' };
-        if (keycloak.token) {
-            headers['Authorization'] = `Bearer ${keycloak.token}`;
-        }
-        const response = await fetch(API_ENDPOINT, { headers });
-
+        const response = await fetch(API_ENDPOINT);
+        
         if (!response.ok) {
             throw new Error(`Lỗi HTTP: ${response.status}`);
         }
 
         const students = await response.json();
-
+        
         // Xóa nội dung loading
         container.innerHTML = '';
 
@@ -89,7 +68,7 @@ async function loadStudentData() {
 function createStudentCard(student) {
     const div = document.createElement('div');
     div.className = "bg-white p-6 rounded-[1.5rem] shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 border border-slate-100 flex flex-col justify-between group";
-
+    
     // Tui thêm màu sắc ngẫu nhiên cho Avatar cho nó "vui mắt"
     const colors = ['bg-orange-100 text-orange-600', 'bg-cyan-100 text-cyan-600', 'bg-rose-100 text-rose-600', 'bg-indigo-100 text-indigo-600'];
     const randomColor = colors[Math.floor(Math.random() * colors.length)];
@@ -99,14 +78,14 @@ function createStudentCard(student) {
             <div class="w-12 h-12 ${randomColor} rounded-full flex items-center justify-center font-bold mb-4 transition group-hover:scale-110">
                 ${student.name.charAt(0)}
             </div>
-            <h4 class="text-lg font-extrabold text-slate-900 mb-1 leading-tight group-hover:text-orange-600 transition">${student.name ?? student.fullname ?? 'N/A'}</h4>
-            <p class="text-xs font-mono text-slate-400 mb-4 tracking-tighter">STUDENT_ID: ${student.id ?? student.student_id ?? 'N/A'}</p>
+            <h4 class="text-lg font-extrabold text-slate-900 mb-1 leading-tight group-hover:text-orange-600 transition">${student.name}</h4>
+            <p class="text-xs font-mono text-slate-400 mb-4 tracking-tighter">STUDENT_ID: ${student.id}</p>
             
             <!-- Phần sáng tạo thêm: Thông tin bổ sung nếu có -->
             <div class="space-y-2">
                 <div class="flex items-center gap-2 text-[11px] text-slate-500">
                     <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                    <span>Chuyên ngành: ${student.major || 'Công nghệ phần mềm'}</span>
+                    <span>Chuyên ngành: Công nghệ phần mềm</span>
                 </div>
             </div>
         </div>

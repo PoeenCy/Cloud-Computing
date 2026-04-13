@@ -12,8 +12,6 @@
         rel="stylesheet">
     <!-- Style tùy chỉnh nếu ông cần thêm trong assets/css/style.css -->
     <link rel="stylesheet" href="assets/css/style.css">
-    <!-- Keycloak JS -->
-    <script src="https://cdn.jsdelivr.net/npm/keycloak-js@latest/dist/keycloak.min.js"></script>
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -80,17 +78,6 @@
                 <a href="#students"
                     class="bg-white border border-slate-200 px-8 py-3 rounded-xl font-bold hover:bg-slate-50 transition">Check
                     Hệ Thống</a>
-            </div>
-            <div class="mt-6 flex flex-wrap gap-3 text-sm font-semibold">
-                <a href="blog/travel.html"
-                    class="px-4 py-2 rounded-full bg-white border border-slate-200 hover:border-orange-300 hover:text-orange-600 transition">Blog
-                    Du lịch</a>
-                <a href="blog/tech.html"
-                    class="px-4 py-2 rounded-full bg-white border border-slate-200 hover:border-cyan-300 hover:text-cyan-600 transition">Blog
-                    Công nghệ</a>
-                <a href="blog/food.html"
-                    class="px-4 py-2 rounded-full bg-white border border-slate-200 hover:border-rose-300 hover:text-rose-600 transition">Blog
-                    Ẩm thực</a>
             </div>
         </div>
         <div class="relative group">
@@ -221,14 +208,14 @@
                         <div class="bg-white p-6 rounded-[1.5rem] shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 border border-slate-100 flex flex-col justify-between">
                             <div>
                                 <div class="w-10 h-10 bg-orange-50 rounded-full flex items-center justify-center text-orange-600 font-bold mb-4">
-                                    ${s.name.charAt(0)}
+                                    ${(s.name || s.fullname || '?').charAt(0)}
                                 </div>
-                                <h4 class="text-lg font-bold text-slate-900 mb-1 leading-tight">${s.name}</h4>
-                                <p class="text-xs font-mono text-slate-400 mb-4">ID: ${s.id}</p>
+                                <h4 class="text-lg font-bold text-slate-900 mb-1 leading-tight">${s.name || s.fullname || 'N/A'}</h4>
+                                <p class="text-xs font-mono text-slate-400 mb-1">ID: ${s.id || s.student_id || 'N/A'}</p>
+                                <p class="text-xs text-slate-400 mb-4">Ngành: ${s.major || 'N/A'}</p>
                             </div>
                             <div class="flex items-center justify-between mt-4 pt-4 border-t border-slate-50">
                                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active</span>
-                                <a href="${s.github || '#'}" class="text-slate-900 hover:text-orange-500 transition font-bold text-xs underline">Github →</a>
                             </div>
                         </div>
                     `;
