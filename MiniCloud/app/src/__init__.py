@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_oidc import OpenIDConnect
+from prometheus_flask_exporter import PrometheusMetrics
 
 # Khởi tạo đối tượng OIDC
 oidc = OpenIDConnect()
@@ -16,6 +17,9 @@ def create_app():
     app.config['OIDC_VALIDATE_ISSUER'] = False
     # Gắn OIDC vào app
     oidc.init_app(app)
+
+    # Expose /metrics endpoint theo Prometheus exposition format
+    PrometheusMetrics(app)
     
     # Import và đăng ký các route
     from .routes import api_bp

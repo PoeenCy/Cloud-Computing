@@ -8,24 +8,25 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  # Node Exporter — CPU, RAM, Disk, Network
+  # Node Exporter — CPU, RAM, Disk, Network của host
   - job_name: 'node-exporter'
     static_configs:
       - targets: ['minicloud-node-exporter:9100']
+        labels:
+          instance: 'monitoring-node-exporter-server'
 
-  # Nginx Web Server (qua stub_status module)
-  - job_name: 'web'
-    static_configs:
-      - targets: ['web1.cloud.local:80', 'web2.cloud.local:80']
-    metrics_path: /stub_status
-
-  # Flask Application Server
+  # Flask App — Prometheus metrics từ Flask app (prometheus_flask_exporter)
   - job_name: 'app'
     static_configs:
-      - targets: ['app.cloud.local:8081']
-    metrics_path: /api/hello
+      - targets: ['10.10.1.12:8081']
+    metrics_path: /metrics
 
-  # MariaDB (qua healthcheck endpoint)
+  # mysqld-exporter — MariaDB metrics
   - job_name: 'db'
     static_configs:
-      - targets: ['minicloud-db:3306']
+      - targets: ['minicloud-mysqld-exporter:9104']
+
+  # nginx-prometheus-exporter — nginx connection metrics
+  - job_name: 'web'
+    static_configs:
+      - targets: ['minicloud-nginx-exporter:9113']

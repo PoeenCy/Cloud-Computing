@@ -274,10 +274,16 @@ services:
     image: prom/prometheus:latest
     container_name: minicloud-monitoring
     networks:
+      frontend-net:
+        ipv4_address: 10.10.1.16
       mgmt-net:
         ipv4_address: 10.10.3.16
     dns:
       - 10.10.3.53
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+    ports:
+      - "127.0.0.1:9090:9090"
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     restart: unless-stopped
@@ -330,6 +336,35 @@ services:
       timeout: 10s
       retries: 3
 
+  mysqld-exporter:
+    image: prom/mysqld-exporter:latest
+    container_name: minicloud-mysqld-exporter
+    networks:
+      backend-net:
+        ipv4_address: 10.10.2.20
+      mgmt-net:
+        ipv4_address: 10.10.3.22
+    dns:
+      - 10.10.3.53
+    secrets:
+      - db_password
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        DB_PASS=$$(cat /run/secrets/db_password)
+        export DATA_SOURCE_NAME="admin:$$DB_PASS@tcp(minicloud-db:3306)/minicloud"
+        exec /bin/mysqld_exporter --mysqld.address=minicloud-db:3306 --mysqld.username=admin
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9104/metrics || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   node-exporter:
     image: prom/node-exporter:latest
     container_name: minicloud-node-exporter
@@ -338,6 +373,16 @@ services:
         ipv4_address: 10.10.3.19
     dns:
       - 10.10.3.53
+    pid: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host/root:ro,rslave
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--path.rootfs=/host/root"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
     restart: unless-stopped
     depends_on:
       dns:
@@ -347,6 +392,21 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:latest
+    container_name: minicloud-nginx-exporter
+    networks:
+      mgmt-net:
+        ipv4_address: 10.10.3.21
+    dns:
+      - 10.10.3.53
+    command:
+      - "--nginx.scrape-uri=http://10.10.3.11:80/stub_status"
+    restart: unless-stopped
+    depends_on:
+      - web1
+      - web2
 
 volumes:
   db_data:
