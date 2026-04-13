@@ -1,0 +1,88 @@
+﻿<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bún Ð?u Hàng Khay: Tinh Hoa Ngõ Nh? | Ngôn's Foodie</title>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                }
+            }
+        };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/blog/food.css">
+</head>
+<body class="food-gradient text-slate-800 antialiased">
+
+    <div id="progress-bar" class="reading-progress-bar"></div>
+
+    <nav class="fixed top-0 w-full z-50 glass-nav">
+        <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+            <a href="../index.html" class="font-bold text-xl tracking-tighter text-rose-600 hover:text-rose-700 transition">
+                NGON<span class="text-amber-500">.</span>FOODIE
+            </a>
+            <div class="flex items-center gap-6 text-sm font-semibold">
+                <a href="../index.html" class="hover:text-rose-600 transition">Trang chu</a>
+                <span class="text-slate-300">|</span>
+                <a href="travel.html" class="hover:text-rose-600 transition text-slate-500">Du lich</a>
+                <a href="tech.html" class="hover:text-rose-600 transition text-slate-500">Cong nghe</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="pt-32 pb-12 px-6 text-center">
+        <div class="max-w-4xl mx-auto">
+            <span class="text-rose-500 font-bold tracking-[0.2em] text-xs uppercase mb-4 block">Am Thuc Pho Co Ha Noi</span>
+            <h1 class="font-serif text-5xl md:text-6xl text-slate-900 mb-8 leading-tight italic">
+                Bun Dau Hang Khay: <br> "Mam tom khong thoi, mam tom la huong vi."
+            </h1>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-6 py-12">
+        <div class="relative rounded-[3rem] overflow-hidden shadow-2xl mb-20 group">
+            <img src="https://images.unsplash.com/photo-1567037144414-0d703908878b?auto=format&fit=crop&q=80&w=2000"
+                 class="w-full h-[70vh] object-cover group-hover:scale-105 transition duration-1000">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-12">
+                <p class="text-white text-lg italic font-serif">"Mot met bun dau day du mau sac, danh thuc moi giac quan."</p>
+            </div>
+        </div>
+
+        <article class="max-w-3xl mx-auto">
+            <div class="prose prose-slate lg:prose-xl leading-relaxed text-slate-700">
+                <p class="text-2xl font-serif italic text-slate-500 mb-10 leading-relaxed">
+                    Sau khi cau hinh giao dien MiniCloud, toi tu thuong mot chuyen food tour nho o pho Hang Khay.
+                </p>
+                <h2 class="font-serif text-3xl text-slate-900 mt-16 mb-6">Linh hon cua mon an: Mam tom</h2>
+                <p class="mb-6">Mam tom tai day duoc pha vua van, them quat va ot bam tao huong vi can bang, rat bat vi.</p>
+                <h2 class="font-serif text-3xl text-slate-900 mt-16 mb-6">Loi ket</h2>
+                <p>Neu ban la dev, thu roi ban phim va trai nghiem am thuc dia phuong de lay lai nang luong sang tao.</p>
+            </div>
+
+            <div class="mt-20 flex flex-col items-center border-t border-rose-100 pt-12">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Chia se bai viet</p>
+                <div class="flex gap-6">
+                    <button class="w-12 h-12 rounded-full border border-rose-200 flex items-center justify-center hover:bg-rose-500 hover:text-white transition">F</button>
+                    <button class="w-12 h-12 rounded-full border border-rose-200 flex items-center justify-center hover:bg-rose-500 hover:text-white transition">I</button>
+                    <button id="copy-link-btn" class="w-12 h-12 rounded-full border border-rose-200 flex items-center justify-center hover:bg-rose-500 hover:text-white transition">L</button>
+                </div>
+            </div>
+        </article>
+    </main>
+
+    <footer class="py-16 text-center">
+        <p class="text-[10px] text-slate-400 uppercase tracking-[0.3em]">© 2024 Ngon Personal Project</p>
+    </footer>
+
+    <script src="../assets/js/blog/common.js"></script>
+    <script src="../assets/js/blog/food.js"></script>
+</body>
+</html>

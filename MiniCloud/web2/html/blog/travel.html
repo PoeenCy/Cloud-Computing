@@ -1,0 +1,67 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ngon Cloud | Chia se & Trai nghiem</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/blog/travel.css">
+</head>
+<body class="bg-slate-50 text-slate-900">
+
+    <header class="bg-white border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-6 py-16 md:py-24 flex flex-col md:flex-row items-center gap-12">
+            <div class="flex-1 text-center md:text-left">
+                <h1 class="text-5xl md:text-7xl font-extrabold tracking-tighter mb-6">Chao, minh la <span class="text-orange-500">Ngon</span>.</h1>
+                <p class="text-xl text-slate-500 mb-8 max-w-xl leading-relaxed">UI/UX Specialist tai MiniCloud. Day la goc nho de chia se cong nghe, du lich, am thuc.</p>
+                <div class="flex flex-wrap justify-center md:justify-start gap-4">
+                    <a href="#articles" class="bg-slate-900 text-white px-8 py-3 rounded-full font-bold hover:bg-orange-600 transition shadow-xl shadow-slate-200">Doc Blog</a>
+                    <a href="http://localhost:3000" target="_blank" class="bg-white border border-slate-200 text-slate-600 px-8 py-3 rounded-full font-bold hover:bg-slate-50 transition">He thong Grafana</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main id="articles" class="max-w-7xl mx-auto px-6 py-20">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+            <article class="blog-card group bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100 transition hover:shadow-2xl duration-300">
+                <div class="h-64 overflow-hidden relative">
+                    <img src="https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&q=80&w=800" class="w-full h-full object-cover transition duration-500">
+                </div>
+                <div class="p-8">
+                    <h3 class="text-2xl font-bold mb-4 group-hover:text-orange-600 transition">Hanh trinh tim lai ban than tai Da Lat</h3>
+                    <a href="travel.html" class="inline-flex items-center font-bold text-slate-900 gap-2 hover:gap-4 transition-all">Doc them <span class="text-orange-500">?</span></a>
+                </div>
+            </article>
+            <article class="blog-card group bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100 transition hover:shadow-2xl duration-300">
+                <div class="h-64 overflow-hidden relative">
+                    <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800" class="w-full h-full object-cover transition duration-500 grayscale group-hover:grayscale-0">
+                </div>
+                <div class="p-8"><a href="tech.html" class="inline-flex items-center font-bold text-slate-900 gap-2">Cong nghe <span class="text-cyan-500">?</span></a></div>
+            </article>
+            <article class="blog-card group bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100 transition hover:shadow-2xl duration-300">
+                <div class="h-64 overflow-hidden relative">
+                    <img src="https://images.unsplash.com/photo-1567037144414-0d703908878b?auto=format&fit=crop&q=80&w=800" class="w-full h-full object-cover transition duration-500 grayscale group-hover:grayscale-0">
+                </div>
+                <div class="p-8"><a href="food.html" class="inline-flex items-center font-bold text-slate-900 gap-2">Am thuc <span class="text-rose-500">?</span></a></div>
+            </article>
+        </div>
+    </main>
+
+    <section class="bg-slate-900 text-white py-20">
+        <div class="max-w-7xl mx-auto px-6">
+            <h2 class="text-3xl font-bold mb-10">Danh sach Sinh Vien (He thong Core)</h2>
+            <div id="student-list" class="grid grid-cols-1 md:grid-cols-4 gap-6 text-slate-900">
+                <div class="bg-slate-800 p-6 rounded-2xl text-slate-400 italic">Dang tai du lieu tu API...</div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="py-12 text-center text-slate-400 text-sm">
+        <p>© 2024 Ngon Cloud Blog. Built with Docker.</p>
+    </footer>
+
+    <script src="../assets/js/blog/travel.js"></script>
+</body>
+</html>

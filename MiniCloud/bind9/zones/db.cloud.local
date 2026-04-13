@@ -1,6 +1,6 @@
 $TTL    604800
 @       IN      SOA     ns1.cloud.local. admin.cloud.local. (
-                              4         ; Serial
+                              5         ; Serial
                          604800         ; Refresh
                           86400         ; Retry
                         2419200         ; Expire
@@ -12,6 +12,8 @@ ns1             IN      A       10.10.3.53
 
 proxy           IN      A       10.10.1.10
 web             IN      A       10.10.1.11
+web1            IN      A       10.10.1.11
+web2            IN      A       10.10.1.20
 app             IN      A       10.10.1.12
 auth            IN      A       10.10.1.13
 db              IN      A       10.10.2.14

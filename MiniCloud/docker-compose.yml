@@ -62,14 +62,15 @@ services:
     dns:
       - 10.10.3.53
     ports:
-      #- "80:80"
-      - "8088:80"      # sửa dòng này
+      - "8088:80"
       - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     restart: unless-stopped
     depends_on:
-      web:
+      web1:
+        condition: service_healthy
+      web2:
         condition: service_healthy
       app:
         condition: service_healthy
@@ -81,14 +82,38 @@ services:
       timeout: 10s
       retries: 3
 
-  web:
+  # Mục 10: Web Instance #1 (Round Robin)
+  web1:
     build: ./web
-    container_name: minicloud-web
+    container_name: minicloud-web1
+    hostname: web1
     networks:
       frontend-net:
         ipv4_address: 10.10.1.11
       mgmt-net:
         ipv4_address: 10.10.3.11
+    dns:
+      - 10.10.3.53
+    restart: unless-stopped
+    depends_on:
+      dns:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Mục 10: Web Instance #2 (Round Robin)
+  web2:
+    build: ./web2
+    container_name: minicloud-web2
+    hostname: web2
+    networks:
+      frontend-net:
+        ipv4_address: 10.10.1.20
+      mgmt-net:
+        ipv4_address: 10.10.3.20
     dns:
       - 10.10.3.53
     restart: unless-stopped
@@ -249,6 +274,8 @@ services:
         ipv4_address: 10.10.3.16
     dns:
       - 10.10.3.53
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     restart: unless-stopped
     depends_on:
       dns:
