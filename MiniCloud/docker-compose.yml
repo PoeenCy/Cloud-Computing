@@ -159,9 +159,9 @@ services:
       KC_DB: mariadb
       KC_DB_URL: jdbc:mariadb://minicloud-db:3306/${DB_NAME:-minicloud}
       KC_DB_USERNAME: ${DB_USER:-admin}
-      KC_DB_PASSWORD: "secure_db_password_123!"
+      KC_DB_PASSWORD_FILE: /run/secrets/db_password
       KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: "keycloak_admin_super_secret_123!"
+      KEYCLOAK_ADMIN_PASSWORD_FILE: /run/secrets/kc_admin_password
     secrets:
       - db_password
       - kc_admin_password

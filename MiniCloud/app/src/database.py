@@ -10,23 +10,24 @@ def _read_db_password_secret():
     with open(path, 'r', encoding='utf-8') as f:
         return f.read().strip()
 
+
 def get_db_connection():
-    # Đọc password từ file secret mà Docker đã mount vào container
+    """Kết nối MariaDB qua DNS nội bộ db.cloud.local.
+    Raise ConnectionError nếu secret thiếu hoặc DB không sẵn sàng.
+    """
     try:
-        with open('/run/secrets/db_password', 'r') as f:
-            db_pass = f.read().strip()
-    except Exception as e:
-        print(f"Không thể đọc file secret: {e}")
-        return None
+        db_pass = _read_db_password_secret()
+    except RuntimeError as e:
+        raise ConnectionError(f"Không thể đọc secret DB: {e}") from e
 
     try:
         conn = mysql.connector.connect(
-            host='10.10.2.14',       # IP của minicloud-db trong backend-net
-            user='admin',
+            host='db.cloud.local',   # DNS nội bộ Bind9 — không hardcode IP
+            port=3306,
+            user=os.environ.get('DB_USER', 'admin'),
             password=db_pass,
-            database='studentdb'     # Tên DB bạn đã tạo trong file init.sql
+            database=os.environ.get('DB_NAME', 'minicloud'),
         )
         return conn
     except mysql.connector.Error as err:
-        print(f"Lỗi kết nối MariaDB: {err}")
-        return None
+        raise ConnectionError(f"Lỗi kết nối MariaDB: {err}") from err

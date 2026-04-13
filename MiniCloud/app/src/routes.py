@@ -29,13 +29,13 @@ def register_demo():
 @api_bp.route('/api/student', methods=['GET'])
 @oidc.accept_token()
 def get_students():
-    conn = get_db_connection()
-    if conn is None:
-        return jsonify({"error": "Database connection failed"}), 500
-    
+    try:
+        conn = get_db_connection()
+    except ConnectionError as e:
+        return jsonify({"error": "Service Unavailable", "detail": str(e)}), 503
+
     try:
         cursor = conn.cursor(dictionary=True)
-        # Truy vấn các cột đúng như cấu trúc bảng students bạn đã tạo
         cursor.execute("SELECT student_id as id, fullname as name, major FROM students")
         students = cursor.fetchall()
         cursor.close()
