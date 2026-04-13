@@ -26,7 +26,7 @@ def get_db_connection():
             port=3306,
             user=os.environ.get('DB_USER', 'admin'),
             password=db_pass,
-            database=os.environ.get('DB_NAME', 'minicloud'),
+            database=os.environ.get('DB_NAME', 'studentdb'),
         )
         return conn
     except mysql.connector.Error as err:

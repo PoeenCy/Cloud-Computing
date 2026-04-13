@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 
 <head>
@@ -12,6 +12,8 @@
         rel="stylesheet">
     <!-- Style tùy chỉnh nếu ông cần thêm trong assets/css/style.css -->
     <link rel="stylesheet" href="assets/css/style.css">
+    <!-- Keycloak JS (dùng cho luồng OIDC) -->
+    <script src="https://cdn.jsdelivr.net/npm/keycloak-js@latest/dist/keycloak.min.js"></script>
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -22,25 +24,10 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
-
-        .instance-badge {
-            position: fixed;
-            bottom: 1rem;
-            right: 1rem;
-            background: #f97316;
-            color: white;
-            padding: 0.4rem 1rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            z-index: 9999;
-            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
-        }
     </style>
 </head>
 
 <body class="bg-slate-50 text-slate-900 antialiased">
-    <div class="instance-badge">🟠 Web Instance #1</div>
 
     <!-- Navigation Bar -->
     <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
@@ -56,6 +43,10 @@
                 <a href="http://localhost:3000" target="_blank"
                     class="bg-slate-900 text-white px-4 py-2 rounded-full hover:bg-slate-700 transition">Grafana
                     Dash</a>
+                <button id="kc-btn" onclick="kcLogin()"
+                    class="bg-orange-500 text-white px-4 py-2 rounded-full hover:bg-orange-600 transition hidden">Đăng
+                    nhập</button>
+                <span id="kc-user" class="text-green-600 font-bold hidden"></span>
             </div>
         </div>
     </nav>
@@ -85,7 +76,7 @@
                 class="absolute inset-0 bg-orange-200 rounded-[2rem] rotate-3 group-hover:rotate-6 transition duration-500">
             </div>
             <!-- Ông bỏ ảnh cá nhân vào assets/img/avatar.jpg rồi đổi src nhé -->
-            <img src="https://i.pravatar.cc/500?u=ngon" alt="Ngôn Cloud"
+            <img src="assets/img/my-avatar.jpg" alt="Ngôn Cloud"
                 class="relative z-10 w-full aspect-square object-cover rounded-[2rem] shadow-2xl transition group-hover:-rotate-3 duration-500">
         </div>
     </header>
@@ -150,7 +141,7 @@
             <!-- Tech Blog -->
             <div class="group cursor-pointer">
                 <div class="relative h-[400px] rounded-3xl overflow-hidden mb-6 shadow-xl">
-                    <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800"
+                    <img src="assets/img/tech-hero.jpg"
                         class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
                     <div
                         class="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent p-8 flex flex-col justify-end">
@@ -169,7 +160,7 @@
             <!-- Food Blog -->
             <div class="group cursor-pointer">
                 <div class="relative h-[400px] rounded-3xl overflow-hidden mb-6 shadow-xl">
-                    <img src="https://images.unsplash.com/photo-1567037144414-0d703908878b?auto=format&fit=crop&q=80&w=800"
+                    <img src="assets/img/bun-dau-mam-tom.jpg"
                         class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
                     <div
                         class="absolute inset-0 bg-gradient-to-t from-rose-900/80 via-transparent to-transparent p-8 flex flex-col justify-end">
@@ -192,47 +183,79 @@
         <p>© 2024 Ngôn's MiniCloud Personal Project. Built with ❤️ and Nginx.</p>
     </footer>
 
-    <!-- Script kết nối API sinh viên (Tương tự assets/js/main.js nhưng tích hợp sẵn) -->
+    <!-- Script kết nối API sinh viên + Keycloak OIDC -->
+    <script src="https://cdn.jsdelivr.net/npm/keycloak-js@latest/dist/keycloak.min.js"></script>
     <script>
+        // ── Keycloak (optional) ──────────────────────────────────────────
+        const kc = new Keycloak({
+            url: 'http://localhost:8088/auth',
+            realm: 'realm_52300267',
+            clientId: 'flask-app'
+        });
+
+        function kcLogin()  { kc.login(); }
+        function kcLogout() { kc.logout({ redirectUri: window.location.href }); }
+
+        kc.init({ onLoad: 'check-sso', checkLoginIframe: false })
+            .then(authenticated => {
+                const btn  = document.getElementById('kc-btn');
+                const user = document.getElementById('kc-user');
+                if (btn) {
+                    btn.classList.remove('hidden');
+                    if (authenticated) {
+                        btn.textContent = 'Đăng xuất';
+                        btn.onclick = kcLogout;
+                        if (user) {
+                            user.textContent = '👤 ' + (kc.tokenParsed?.preferred_username || 'User');
+                            user.classList.remove('hidden');
+                        }
+                    }
+                }
+            })
+            .catch(() => { /* Keycloak chưa cấu hình — bỏ qua */ });
+
+        // ── Load danh sách sinh viên (public API) ────────────────────────
         async function loadStudents() {
+            const container = document.getElementById('student-list');
             try {
-                // Gọi API từ Backend của ông Việt qua Proxy Nginx
                 const response = await fetch('/api/student');
                 const data = await response.json();
 
-                const container = document.getElementById('student-list');
-                container.innerHTML = ''; // Xóa trạng thái Loading
+                container.innerHTML = '';
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    container.innerHTML = '<div class="col-span-full py-12 text-center text-slate-500 italic">Danh sách sinh viên đang trống.</div>';
+                    return;
+                }
 
                 data.forEach(s => {
-                    const card = `
+                    const name = s.name || s.fullname || 'N/A';
+                    const id   = s.id   || s.student_id || 'N/A';
+                    container.innerHTML += `
                         <div class="bg-white p-6 rounded-[1.5rem] shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 border border-slate-100 flex flex-col justify-between">
                             <div>
                                 <div class="w-10 h-10 bg-orange-50 rounded-full flex items-center justify-center text-orange-600 font-bold mb-4">
-                                    ${(s.name || s.fullname || '?').charAt(0)}
+                                    ${name.charAt(0)}
                                 </div>
-                                <h4 class="text-lg font-bold text-slate-900 mb-1 leading-tight">${s.name || s.fullname || 'N/A'}</h4>
-                                <p class="text-xs font-mono text-slate-400 mb-1">ID: ${s.id || s.student_id || 'N/A'}</p>
+                                <h4 class="text-lg font-bold text-slate-900 mb-1 leading-tight">${name}</h4>
+                                <p class="text-xs font-mono text-slate-400 mb-1">ID: ${id}</p>
                                 <p class="text-xs text-slate-400 mb-4">Ngành: ${s.major || 'N/A'}</p>
                             </div>
-                            <div class="flex items-center justify-between mt-4 pt-4 border-t border-slate-50">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active</span>
+                            <div class="flex items-center mt-4 pt-4 border-t border-slate-50">
+                                <span class="text-[10px] font-bold text-green-500 uppercase tracking-widest">Active</span>
                             </div>
-                        </div>
-                    `;
-                    container.innerHTML += card;
+                        </div>`;
                 });
             } catch (error) {
                 console.error('Lỗi khi lấy dữ liệu:', error);
-                document.getElementById('student-list').innerHTML = `
+                container.innerHTML = `
                     <div class="col-span-full py-12 text-center text-rose-500 bg-rose-50 rounded-3xl border border-rose-100">
                         <p class="font-bold">⚠️ Không thể kết nối với Backend!</p>
-                        <p class="text-xs">Kiểm tra xem ông Việt đã khởi động Docker hay chưa.</p>
-                    </div>
-                `;
+                        <p class="text-xs mt-2">Kiểm tra Docker đã chạy chưa.</p>
+                    </div>`;
             }
         }
 
-        // Tự động chạy khi load trang
         document.addEventListener('DOMContentLoaded', loadStudents);
     </script>
 </body>
