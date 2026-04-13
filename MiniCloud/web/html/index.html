@@ -26,7 +26,6 @@
 </head>
 
 <body class="bg-slate-50 text-slate-900 antialiased">
-<div id="instance-badge" style="position:fixed;bottom:1rem;right:1rem;background:__BADGE_COLOR__;color:white;padding:0.4rem 1rem;border-radius:9999px;font-size:0.75rem;font-weight:700;z-index:9999;box-shadow:0 4px 12px __BADGE_SHADOW__;">__BADGE_EMOJI__ Web Instance #__INSTANCE_ID__</div>
 
     <!-- Navigation Bar -->
     <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
@@ -193,9 +192,9 @@
             .then(authenticated => {
                 if (authenticated) {
                     const user = document.getElementById('kc-user');
-                    const btn  = document.getElementById('kc-btn');
+                    const btn = document.getElementById('kc-btn');
                     if (user) { user.textContent = '👤 ' + (kc.tokenParsed?.preferred_username || 'User'); user.classList.remove('hidden'); }
-                    if (btn)  { btn.textContent = 'Đăng xuất'; btn.onclick = kcLogout; btn.classList.remove('hidden'); }
+                    if (btn) { btn.textContent = 'Đăng xuất'; btn.onclick = kcLogout; btn.classList.remove('hidden'); }
                     loadStudents();
                 }
             })
@@ -208,25 +207,25 @@
             'https://i.pravatar.cc/150?img=12',
         ];
         const ROLES = {
-            '52300232': { role: 'Frontend & UI/UX', icon: '🎨', color: 'from-orange-400 to-pink-500',   avatar: AVATARS[0] },
+            '52300232': { role: 'Frontend & UI/UX', icon: '🎨', color: 'from-orange-400 to-pink-500', avatar: AVATARS[0] },
             '52300299': { role: 'Cloud Infrastructure', icon: '☁️', color: 'from-sky-400 to-indigo-500', avatar: AVATARS[1] },
-            '52300267': { role: 'Backend & DevOps',  icon: '⚙️', color: 'from-emerald-400 to-teal-600', avatar: AVATARS[2] },
+            '52300267': { role: 'Backend & DevOps', icon: '⚙️', color: 'from-emerald-400 to-teal-600', avatar: AVATARS[2] },
         };
 
         // ── Load sinh viên ───────────────────────────────────────────────
         async function loadStudents() {
             const container = document.getElementById('student-list');
             try {
-                const res  = await fetch('/api/student');
+                const res = await fetch('/api/student');
                 const data = await res.json();
                 if (!Array.isArray(data) || data.length === 0) {
                     container.innerHTML = '<div class="col-span-full text-center text-slate-400 py-10 italic">Danh sách trống.</div>';
                     return;
                 }
                 container.innerHTML = data.map((s, i) => {
-                    const id   = s.id   || s.student_id || 'N/A';
-                    const name = s.name || s.fullname   || 'N/A';
-                    const info = ROLES[id] || { role: s.major || 'N/A', icon: '🎓', color: 'from-slate-400 to-slate-600', avatar: `https://i.pravatar.cc/150?img=${i+20}` };
+                    const id = s.id || s.student_id || 'N/A';
+                    const name = s.name || s.fullname || 'N/A';
+                    const info = ROLES[id] || { role: s.major || 'N/A', icon: '🎓', color: 'from-slate-400 to-slate-600', avatar: `https://i.pravatar.cc/150?img=${i + 20}` };
                     return `
                     <div class="relative bg-white rounded-[1.5rem] shadow-md hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 overflow-hidden group">
                         <!-- Gradient header -->
@@ -267,6 +266,18 @@
         }
 
         document.addEventListener('DOMContentLoaded', loadStudents);
+
+        // ── Instance Badge (đọc từ meta tag do entrypoint inject) ────────
+        (function () {
+            const id = document.querySelector('meta[name="instance-id"]')?.content || '1';
+            const cfg = id === '1'
+                ? { color: '#f97316', shadow: 'rgba(249,115,22,0.4)', emoji: '🟠' }
+                : { color: '#6366f1', shadow: 'rgba(99,102,241,0.4)', emoji: '🟣' };
+            const badge = document.createElement('div');
+            badge.textContent = cfg.emoji + ' Web Instance #' + id;
+            badge.style.cssText = `position:fixed;bottom:1rem;right:1rem;background:${cfg.color};color:white;padding:0.4rem 1rem;border-radius:9999px;font-size:0.75rem;font-weight:700;z-index:9999;box-shadow:0 4px 12px ${cfg.shadow};`;
+            document.body.appendChild(badge);
+        })();
     </script>
 </body>
 
