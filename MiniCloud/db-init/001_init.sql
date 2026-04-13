@@ -1,18 +1,25 @@
--- MiniCloud: khởi tạo DB nghiệp vụ (chạy tự động lần đầu khi volume db trống)
+CREATE DATABASE IF NOT EXISTS minicloud;
+USE minicloud;
+CREATE TABLE IF NOT EXISTS notes(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+INSERT INTO notes (title) VALUES ('Hello from MariaDB!');
+
 CREATE DATABASE IF NOT EXISTS studentdb;
 USE studentdb;
-
 CREATE TABLE IF NOT EXISTS students (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    fullname VARCHAR(255) NOT NULL,
-    student_code VARCHAR(32) NOT NULL UNIQUE
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id VARCHAR(10),
+    fullname VARCHAR(100),
+    dob DATE,
+    major VARCHAR(50)
 );
-
-INSERT INTO students (fullname, student_code) VALUES
-    ('Nguyễn Văn A', 'SV001'),
-    ('Trần Thị B', 'SV002'),
-    ('Lê Văn C', 'SV003');
-
--- Cấp quyền cho user ứng dụng (tạo bởi MARIADB_USER trong docker-compose)
+INSERT INTO students (student_id, fullname, dob, major) VALUES 
+('SV001', 'Nguyen Van A', '2002-03-15', 'Computer Science'),
+('SV002', 'Tran Thi B', '2001-11-02', 'Information Systems'),
+('SV003', 'Le Van C', '2002-07-20', 'Software Engineering');
+-- Cấp quyền cho user admin được truy cập vào studentdb
 GRANT ALL PRIVILEGES ON studentdb.* TO 'admin'@'%';
 FLUSH PRIVILEGES;
