@@ -17,9 +17,9 @@ CREATE TABLE IF NOT EXISTS students (
     major VARCHAR(50)
 );
 INSERT INTO students (student_id, fullname, dob, major) VALUES 
-('SV001', 'Nguyen Van A', '2002-03-15', 'Computer Science'),
-('SV002', 'Tran Thi B', '2001-11-02', 'Information Systems'),
-('SV003', 'Le Van C', '2002-07-20', 'Software Engineering');
+('52300232', 'Trần Thanh Nhã', '2002-05-10', 'Frontend & UI/UX Design'),
+('52300299', 'Từ Thanh Ngôn', '2002-08-15', 'Cloud Infrastructure'),
+('52300267', 'Huỳnh Nguyễn Quốc Việt', '2002-03-22', 'Backend & DevOps');
 -- Cấp quyền cho user admin được truy cập vào studentdb
 GRANT ALL PRIVILEGES ON studentdb.* TO 'admin'@'%';
 FLUSH PRIVILEGES;
