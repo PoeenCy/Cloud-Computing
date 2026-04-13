@@ -21,16 +21,16 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("🚀 MiniCloud Dashboard đã sẵn sàng!");
     setupSmoothScroll();
 
-    keycloak.init({ onLoad: 'login-required', checkLoginIframe: false })
+    keycloak.init({ onLoad: 'check-sso', checkLoginIframe: false })
         .then(authenticated => {
             if (authenticated) {
                 console.log("✅ Đăng nhập Keycloak thành công!");
-                loadStudentData();
             }
+            // Load data dù đã đăng nhập hay chưa
+            loadStudentData();
         })
         .catch(err => {
-            console.error("❌ Lỗi Keycloak:", err);
-            // Fallback: load data không cần auth nếu Keycloak chưa cấu hình
+            console.warn("⚠️ Keycloak chưa cấu hình, load data trực tiếp:", err);
             loadStudentData();
         });
 });
@@ -99,8 +99,8 @@ function createStudentCard(student) {
             <div class="w-12 h-12 ${randomColor} rounded-full flex items-center justify-center font-bold mb-4 transition group-hover:scale-110">
                 ${student.name.charAt(0)}
             </div>
-            <h4 class="text-lg font-extrabold text-slate-900 mb-1 leading-tight group-hover:text-orange-600 transition">${student.name}</h4>
-            <p class="text-xs font-mono text-slate-400 mb-4 tracking-tighter">STUDENT_ID: ${student.id}</p>
+            <h4 class="text-lg font-extrabold text-slate-900 mb-1 leading-tight group-hover:text-orange-600 transition">${student.name ?? student.fullname ?? 'N/A'}</h4>
+            <p class="text-xs font-mono text-slate-400 mb-4 tracking-tighter">STUDENT_ID: ${student.id ?? student.student_id ?? 'N/A'}</p>
             
             <!-- Phần sáng tạo thêm: Thông tin bổ sung nếu có -->
             <div class="space-y-2">

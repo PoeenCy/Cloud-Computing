@@ -3,21 +3,26 @@
   if (!container) return;
   try {
     const res = await fetch('/api/student');
+    // Nếu 401/403 (cần token), hiện thông báo thay vì crash
+    if (res.status === 401 || res.status === 403) {
+      container.innerHTML = '<div class="bg-slate-800 p-6 rounded-2xl text-slate-400 italic">Cần đăng nhập để xem danh sách sinh viên.</div>';
+      return;
+    }
     const data = await res.json();
     const list = Array.isArray(data) ? data : [];
     if (list.length === 0) {
-      container.innerHTML = '<div class="bg-slate-800 p-6 rounded-2xl text-slate-400 italic">Backend chua tra danh sach sinh vien.</div>';
+      container.innerHTML = '<div class="bg-slate-800 p-6 rounded-2xl text-slate-400 italic">Danh sách sinh viên đang trống.</div>';
       return;
     }
     container.innerHTML = list.map((s) => `
       <div class="bg-white p-6 rounded-2xl shadow-lg border-b-4 border-orange-500">
-        <p class="text-xs font-bold text-orange-500 uppercase mb-1">Sinh Vien</p>
-        <h4 class="text-xl font-bold">${s.fullname ?? s.name ?? 'N/A'}</h4>
-        <p class="text-sm text-slate-500 mb-4">Ma so: ${s.student_code ?? s.id ?? 'N/A'}</p>
-        <a href="${s.github || '#'}" target="_blank" class="text-xs font-bold bg-slate-100 px-3 py-1 rounded-full hover:bg-slate-200 transition">View Github</a>
+        <p class="text-xs font-bold text-orange-500 uppercase mb-1">Sinh Viên</p>
+        <h4 class="text-xl font-bold">${s.name ?? s.fullname ?? 'N/A'}</h4>
+        <p class="text-sm text-slate-500 mb-2">Mã số: ${s.id ?? s.student_id ?? 'N/A'}</p>
+        <p class="text-sm text-slate-500 mb-4">Ngành: ${s.major ?? 'N/A'}</p>
       </div>
     `).join('');
   } catch (e) {
-    container.innerHTML = '<div class="bg-slate-800 p-6 rounded-2xl text-slate-400 italic">Chua ket noi duoc Backend, hay doi Backend hoan thien API.</div>';
+    container.innerHTML = '<div class="bg-slate-800 p-6 rounded-2xl text-slate-400 italic">Chưa kết nối được Backend.</div>';
   }
 });
