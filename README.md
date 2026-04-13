@@ -8,8 +8,8 @@ Dự án triển khai một hệ thống **MiniCloud** hoàn chỉnh trên Docke
 
 | MSSV | Họ tên | Vai trò |
 |------|--------|---------|
-| 52300232 | Trần Thanh Nhã | Frontend & UI/UX |
-| 52300299 | Từ Thanh Ngôn | Cloud Infrastructure |
+| 52300232 | Trần Thanh Nhã | Cloud Infrastructure |
+| 52300299 | Từ Thanh Ngôn | Frontend & UI/UX |
 | 52300267 | Huỳnh Nguyễn Quốc Việt | Backend & DevOps |
 
 ---
