@@ -1,6 +1,6 @@
 $TTL    604800
 @       IN      SOA     ns1.cloud.local. admin.cloud.local. (
-                              7         ; Serial
+                              8         ; Serial
                          604800         ; Refresh
                           86400         ; Retry
                         2419200         ; Expire
@@ -25,3 +25,8 @@ grafana         IN      A       10.10.3.18
 node-exporter   IN      A       10.10.3.19
 monitoring-node-exporter-server IN A 10.10.3.19
 dns             IN      A       10.10.3.53
+
+; Mục 6 — Bổ sung bản ghi mở rộng
+minio           IN      A       10.10.2.15
+keycloak        IN      A       10.10.1.13
+app-backend     IN      A       10.10.1.12

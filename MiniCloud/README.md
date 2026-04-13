@@ -110,8 +110,31 @@ flowchart LR
 ## 5. DNS nội bộ (Bind9)
 
 - Tất cả service có `dns: 10.10.3.53` dùng **Bind9** làm resolver.
-- Zone `cloud.local` ánh xạ tên → IP (ví dụ `app.cloud.local` → `10.10.1.12`, `db.cloud.local` → `10.10.2.14`).
-- **Nginx Proxy** (`nginx.conf`) dùng `resolver 10.10.3.53` và `proxy_pass` tới `http://web.cloud.local`, `http://app.cloud.local:8081`, `http://auth.cloud.local:8080`.
+- Zone `cloud.local` ánh xạ tên → IP.
+- **Nginx Proxy** (`nginx.conf`) dùng `resolver 10.10.3.53` và `proxy_pass` tới `http://app.cloud.local:8081`, `http://auth.cloud.local:8080`.
+
+### Bảng bản ghi DNS (zone `cloud.local`)
+
+| Hostname | IP | Ghi chú |
+|----------|----|---------|
+| `proxy.cloud.local` | `10.10.1.10` | Nginx Gateway |
+| `web.cloud.local` / `web1.cloud.local` | `10.10.1.11` | Web instance #1 |
+| `web2.cloud.local` | `10.10.1.20` | Web instance #2 |
+| `app.cloud.local` | `10.10.1.12` | Flask API |
+| `auth.cloud.local` | `10.10.1.13` | Keycloak |
+| `db.cloud.local` | `10.10.2.14` | MariaDB |
+| `storage.cloud.local` | `10.10.2.15` | MinIO |
+| `monitoring.cloud.local` | `10.10.3.16` | Prometheus |
+| `grafana.cloud.local` | `10.10.3.18` | Grafana |
+| `dns.cloud.local` | `10.10.3.53` | Bind9 |
+| `minio.cloud.local` | `10.10.2.15` | Alias MinIO (mục 6) |
+| `keycloak.cloud.local` | `10.10.1.13` | Alias Keycloak (mục 6) |
+| `app-backend.cloud.local` | `10.10.1.12` | Alias App backend (mục 6) |
+
+Kiểm tra DNS (PowerShell):
+```powershell
+docker exec minicloud-dns sh -c "dig @127.0.0.1 minio.cloud.local A +short; dig @127.0.0.1 keycloak.cloud.local A +short; dig @127.0.0.1 app-backend.cloud.local A +short"
+```
 
 ---
 
