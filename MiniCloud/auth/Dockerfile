@@ -11,4 +11,7 @@ FROM quay.io/keycloak/keycloak:latest
 USER root
 COPY --from=curl-src /export/curl /usr/bin/curl
 COPY --from=curl-src /export/lib64/ /lib64/
+COPY docker-entrypoint.sh /opt/keycloak/docker-entrypoint.sh
+RUN chmod +x /opt/keycloak/docker-entrypoint.sh
 USER keycloak
+ENTRYPOINT ["/opt/keycloak/docker-entrypoint.sh"]
