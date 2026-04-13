@@ -196,7 +196,7 @@
         function kcLogin()  { kc.login(); }
         function kcLogout() { kc.logout({ redirectUri: window.location.href }); }
 
-        kc.init({ onLoad: 'check-sso', checkLoginIframe: false })
+        kc.init({ onLoad: 'login-required', checkLoginIframe: false })
             .then(authenticated => {
                 const btn  = document.getElementById('kc-btn');
                 const user = document.getElementById('kc-user');
