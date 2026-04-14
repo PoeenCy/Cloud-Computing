@@ -29,7 +29,7 @@ MiniCloud là một cụm **Docker Compose** gồm **14 container**, chạy trê
 ```mermaid
 flowchart LR
   subgraph host["Máy host"]
-    U[Người dùng / trình duyệt\nport 8088]
+    U["Người dùng / trình duyệt\nport 8088"]
   end
 
   subgraph fe["frontend-net 10.10.1.0/24"]
@@ -39,45 +39,61 @@ flowchart LR
     A["App Flask\n10.10.1.12:8081"]
     K["Keycloak\n10.10.1.13:8080"]
     PR["Prometheus\n10.10.1.16:9090"]
-    MI["MinIO Console\n10.10.1.15:9001"]
+    MI["MinIO\n10.10.1.15:9001"]
   end
 
   subgraph be["backend-net 10.10.2.0/24 — internal"]
-    D[("MariaDB\n10.10.2.14")]
+    D[("MariaDB\n10.10.2.14:3306")]
     S[("MinIO S3 API\n10.10.2.15:9000")]
     ME["mysqld-exporter\n10.10.2.20:9104"]
+    RD["Redis\n10.10.2.16:6379"]
   end
 
   subgraph mgmt["mgmt-net 10.10.3.0/24"]
-    DNS["Bind9\n10.10.3.53"]
+    DNS["Bind9 DNS\n10.10.3.53:53"]
     GF["Grafana\n10.10.3.18:3000"]
     NE["Node Exporter\n10.10.3.19:9100"]
     WE["nginx-exporter\n10.10.3.21:9113"]
-    LO["Loki\n10.10.3.17"]
+    LO["Loki\n10.10.3.17:3100"]
   end
 
-  U -->|"/ → round-robin"| P
-  P --> W1
-  P --> W2
+  U -->|"port 8088"| P
+
+  P -->|"/ round-robin"| W1
+  P -->|"/ round-robin"| W2
   P -->|"/api/ /student/"| A
   P -->|"/auth/"| K
-  P -->|"/grafana/ (public)"| GF
-  P -->|"/prometheus/ (auth_request)"| PR
-  P -->|"/minio/ (auth_request)"| MI
+  P -->|"/grafana/"| GF
+  P -->|"/prometheus/\nauth_request"| PR
+  P -->|"/minio/\nauth_request"| MI
 
-  A -->|auth check| K
-  A --> D
-  K --> D
+  A -->|"POST token\nauth check"| K
+  A -->|"query/write\ndb.cloud.local:3306"| D
+  A -->|"store/verify\ntoken sessions"| RD
+  K -->|"store realm\ndb.cloud.local:3306"| D
+  MI -->|"S3 API\n:9000"| S
 
-  PR -->|scrape :8081/metrics| A
-  PR -->|scrape :9104| ME
-  PR -->|scrape :9113| WE
-  PR -->|scrape :9100| NE
-  ME --> D
-  WE --> W1
+  ME -->|"scrape metrics\n:3306"| D
+  WE -->|"stub_status\n10.10.3.11:80"| W1
 
-  GF --> PR
-  GF --> LO
+  PR -->|"scrape /metrics\n:8081"| A
+  PR -->|"scrape\n:9104"| ME
+  PR -->|"scrape\n:9113"| WE
+  PR -->|"scrape\n:9100"| NE
+  PR -->|"scrape self\n:9090"| PR
+
+  GF -->|"query metrics"| PR
+  GF -->|"query logs"| LO
+
+  P -.->|"resolve\napp/auth/..."| DNS
+  W1 -.->|"DNS"| DNS
+  W2 -.->|"DNS"| DNS
+  A -.->|"DNS"| DNS
+  K -.->|"DNS"| DNS
+  PR -.->|"DNS"| DNS
+  GF -.->|"DNS"| DNS
+  ME -.->|"DNS"| DNS
+  WE -.->|"DNS"| DNS
 ```
 
 ---
