@@ -1,18 +1,33 @@
 # Hướng Dẫn Kiểm Tra Hệ Thống MiniCloud
 
-> Base URL: `http://localhost:8088` (qua Nginx proxy)  
-> Prometheus: `http://localhost:9090` (chỉ local)  
-> MinIO Console: `http://localhost:9001`  
-> Grafana: `http://localhost:3000`  
+> **Tất cả dịch vụ đều truy cập qua Nginx Reverse Proxy tại port 8088.**  
+> Các port 3000, 9001, 9090 **không expose ra ngoài** — chỉ dùng nội bộ Docker.
+>
+> Base URL: `http://localhost:8088`  
+> Từ máy khác trong mạng LAN: thay `localhost` bằng IP máy chủ (vd: `http://10.0.205.103:8088`)
 >
 > **Lưu ý Windows PowerShell**: Dùng `curl.exe` thay vì `curl` (PowerShell alias `curl` trỏ vào `Invoke-WebRequest`, không hỗ trợ `-I`, `-s`)
 
 ---
 
+## Tóm tắt Port & Credentials
+
+| Service          | URL truy cập                          | Credentials                              |
+|------------------|---------------------------------------|------------------------------------------|
+| Nginx proxy      | http://localhost:8088                 | —                                        |
+| Keycloak Admin   | http://localhost:8088/auth/admin      | admin / keycloak_admin_super_secret_123! |
+| MinIO Console    | http://localhost:8088/minio/          | admin / minio_admin_secret_123! (cần login trước) |
+| Grafana          | http://localhost:8088/grafana/        | admin / admin                            |
+| Prometheus       | http://localhost:8088/prometheus/     | — (cần login trước)                      |
+| DNS (nội bộ)     | —                                     | —                                        |
+
+> **MinIO và Prometheus** được bảo vệ bằng cookie auth — cần đăng nhập tại `http://localhost:8088` trước.
+
+---
+
 ## 1. Kiểm tra API Gateway Proxy — Nginx Reverse Proxy
 
-> Mục đích: Xác minh routing hợp nhất qua một cổng duy nhất (port 8088).  
-> 3 truy cập: web frontend, app backend, auth (Keycloak).
+> Mục đích: Xác minh routing hợp nhất qua một cổng duy nhất (port 8088).
 
 ### Linux / macOS
 ```bash
@@ -53,16 +68,9 @@ Auth: HTTP/1.1 302 Found  (Location: /auth/admin/)
 
 ### Linux / macOS & Windows (CMD)
 ```bash
-# Hello endpoint
 curl http://localhost:8088/api/hello
-
-# Danh sách sinh viên (JSON)
 curl -H "Accept: application/json" http://localhost:8088/api/student
-
-# Danh sách notes
 curl -H "Accept: application/json" http://localhost:8088/api/notes
-
-# Demo hash mật khẩu
 curl http://localhost:8088/api/register_demo
 ```
 
@@ -87,7 +95,6 @@ curl.exe http://localhost:8088/api/register_demo
 
 ## 3. Kiểm tra khi DB không khả dụng (HTTP 503)
 
-### Linux / macOS & Windows
 ```bash
 docker stop minicloud-db
 curl -v http://localhost:8088/api/student
@@ -131,7 +138,6 @@ curl http://localhost:8088/auth/realms/realm_52300267/.well-known/openid-configu
 
 #### Linux / macOS
 ```bash
-# Lấy admin token
 ADMIN_TOKEN=$(curl -s -X POST \
   "http://localhost:8088/auth/realms/master/protocol/openid-connect/token" \
   -H "Content-Type: application/x-www-form-urlencoded" \
@@ -236,10 +242,7 @@ curl -v -H "Authorization: Bearer token_gia_mao_123" http://localhost:8088/api/s
 
 #### Windows (PowerShell)
 ```powershell
-# Với token hợp lệ
 curl.exe -s -H "Authorization: Bearer $ACCESS_TOKEN" -H "Accept: application/json" http://localhost:8088/api/student/secure
-
-# Với token giả
 curl.exe -v -H "Authorization: Bearer token_gia_mao_123" http://localhost:8088/api/student/secure
 ```
 
@@ -247,9 +250,9 @@ curl.exe -v -H "Authorization: Bearer token_gia_mao_123" http://localhost:8088/a
 
 ## 5. Kiểm tra Object Storage MinIO (tương đương Amazon S3)
 
-> Chạy hoàn toàn local — KHÔNG cần cloud.  
-> Console UI: **http://localhost:9001** | Credentials: `admin` / `minio_admin_secret_123!`  
-> Port 9000 (S3 API) không expose ra ngoài — dùng `docker exec`.
+> Console UI: **http://localhost:8088/minio/** (cần đăng nhập tại trang chủ trước)  
+> Credentials: `admin` / `minio_admin_secret_123!`  
+> Port 9000 (S3 API) và 9001 (Console) không expose ra ngoài — dùng `docker exec` hoặc qua proxy.
 
 ### Bước 1 — Health check
 
@@ -261,7 +264,6 @@ docker exec minicloud-storage curl -sf http://127.0.0.1:9000/minio/health/live &
 
 ### Bước 2 — Liệt kê bucket + object qua S3 API
 
-#### Linux / macOS & Windows (CMD / PowerShell — 1 dòng)
 ```bash
 # Liệt kê tất cả buckets
 docker exec minicloud-storage curl -s --user "admin:minio_admin_secret_123!" --aws-sigv4 "aws:amz:us-east-1:s3" "http://127.0.0.1:9000/"
@@ -304,6 +306,8 @@ Invoke-WebRequest -Uri "https://dl.min.io/client/mc/release/windows-amd64/mc.exe
 .\mc.exe mb minicloud/test-bucket
 ```
 
+> **Lưu ý:** MinIO S3 API (port 9000) không expose ra ngoài. Dùng `docker exec` hoặc kết nối từ bên trong Docker network.
+
 ---
 
 ## 6. Kiểm tra DNS Bind9 — Phân giải tên miền nội bộ
@@ -313,13 +317,8 @@ Invoke-WebRequest -Uri "https://dl.min.io/client/mc/release/windows-amd64/mc.exe
 ### Bước 1 — Health check + Truy vấn bản ghi
 
 ```bash
-# Health check
 docker exec minicloud-dns dig @127.0.0.1 localhost
-
-# Truy vấn web-frontend-server
 docker exec minicloud-dns dig @127.0.0.1 web-frontend-server.cloud.local A
-
-# Truy vấn monitoring-node-exporter-server
 docker exec minicloud-dns dig @127.0.0.1 monitoring-node-exporter-server.cloud.local A
 ```
 
@@ -334,10 +333,7 @@ monitoring-node-exporter-server.cloud.local. 604800 IN A 10.10.3.19
 ### Bước 2 — Truy vấn tất cả bản ghi trong zone
 
 ```bash
-# Dump toàn bộ zone
 docker exec minicloud-dns dig @127.0.0.1 cloud.local AXFR
-
-# Truy vấn từng server
 docker exec minicloud-dns dig @127.0.0.1 web1.cloud.local A
 docker exec minicloud-dns dig @127.0.0.1 web2.cloud.local A
 docker exec minicloud-dns dig @127.0.0.1 app.cloud.local A
@@ -370,13 +366,12 @@ docker exec minicloud-dns rndc reload
 
 ## 7. Kiểm tra Monitoring — Node Exporter + Prometheus
 
-> Prometheus UI: **http://localhost:9090** (chỉ bind localhost, không public)  
+> Prometheus UI: **http://localhost:8088/prometheus/** (cần đăng nhập tại trang chủ trước)  
 > Scrape interval: 15s
 
 ### Bước 1 — Kiểm tra tất cả targets UP
 
 ```bash
-# Xem trạng thái tất cả targets
 docker exec minicloud-monitoring wget -qO- "http://localhost:9090/api/v1/targets?state=active" | python3 -c "import sys,json; targets=json.load(sys.stdin)['data']['activeTargets']; [print(t['labels']['job'], '-', t['health']) for t in targets]"
 ```
 
@@ -434,7 +429,7 @@ docker exec minicloud-monitoring wget -qO- http://localhost:9090/-/ready
 
 ## 8. Kiểm tra Grafana Dashboard
 
-> Grafana UI: **http://localhost:3000**  
+> Grafana UI: **http://localhost:8088/grafana/**  
 > Đăng nhập: `admin` / `admin` (đổi password lần đầu)
 
 ### Bước 1 — Thêm Prometheus datasource
@@ -451,7 +446,7 @@ docker exec minicloud-monitoring wget -qO- http://localhost:9090/-/ready
 ### Bước 3 — Health check API
 
 ```bash
-curl http://localhost:3000/api/health
+docker exec minicloud-grafana wget -qO- http://localhost:3000/api/health
 ```
 
 **Kết quả mong đợi:** `{"commit":"...","database":"ok","version":"..."}`
@@ -462,13 +457,8 @@ curl http://localhost:3000/api/health
 
 ### Linux / macOS
 ```bash
-# Xem bảng notes
 docker exec minicloud-db mariadb -uroot -p$(cat MiniCloud/secrets/db_root_password.txt) -e "SELECT * FROM minicloud.notes;"
-
-# Xem bảng students
 docker exec minicloud-db mariadb -uroot -p$(cat MiniCloud/secrets/db_root_password.txt) -e "SELECT * FROM studentdb.students;"
-
-# Liệt kê databases
 docker exec minicloud-db mariadb -uroot -p$(cat MiniCloud/secrets/db_root_password.txt) -e "SHOW DATABASES;"
 ```
 
@@ -499,7 +489,6 @@ id  title                  created_at
 
 > Dùng container `app` làm điểm ping (có mặt trong cả 3 network).
 
-### Linux / macOS & Windows (CMD / PowerShell)
 ```bash
 docker exec minicloud-app sh -c "
 echo '=== proxy/nginx    (10.10.1.10) ===' && ping -c 2 proxy.cloud.local    2>&1 | tail -2
@@ -558,16 +547,3 @@ python -m pytest tests/ -v
 Set-Location MiniCloud\app
 python -m pytest tests/ -v
 ```
-
----
-
-## Tóm tắt Port & Credentials
-
-| Service            | Port      | URL                          | Credentials                        |
-|--------------------|-----------|------------------------------|------------------------------------|
-| Nginx proxy        | 8088      | http://localhost:8088        | —                                  |
-| Keycloak Admin     | 8088/auth | http://localhost:8088/auth   | admin / keycloak_admin_super_secret_123! |
-| MinIO Console      | 9001      | http://localhost:9001        | admin / minio_admin_secret_123!    |
-| Grafana            | 3000      | http://localhost:3000        | admin / admin                      |
-| Prometheus         | 9090      | http://localhost:9090        | — (chỉ local)                      |
-| DNS (nội bộ)       | 53/udp    | —                            | —                                  |
