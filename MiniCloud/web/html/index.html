@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 
 <head>
@@ -35,16 +35,56 @@
                 </div>
                 <span class="font-extrabold text-xl tracking-tight text-slate-900">MiniCloud</span>
             </div>
-            <div class="hidden md:flex items-center gap-6 font-semibold text-sm text-slate-600">
+            <div class="hidden md:flex items-center gap-4 font-semibold text-sm text-slate-600">
                 <a href="#students" class="hover:text-orange-500 transition">Hệ thống</a>
                 <a href="#blogs" class="hover:text-orange-500 transition">Blog cá nhân</a>
-                <a href="http://localhost:3000" target="_blank"
-                    class="bg-slate-900 text-white px-4 py-2 rounded-full hover:bg-slate-700 transition">Grafana
-                    Dash</a>
-                <button id="kc-btn" onclick="kcLogin()"
-                    class="bg-orange-500 text-white px-4 py-2 rounded-full hover:bg-orange-600 transition hidden">Đăng
-                    nhập</button>
-                <span id="kc-user" class="text-green-600 font-bold hidden"></span>
+                <a href="/grafana/" target="_blank"
+                    class="bg-slate-900 text-white px-4 py-2 rounded-full hover:bg-slate-700 transition text-xs">Grafana</a>
+
+                <!-- Chưa đăng nhập -->
+                <button id="kc-btn" onclick="toggleLoginPanel()"
+                    class="bg-orange-500 text-white px-4 py-2 rounded-full hover:bg-orange-600 transition">
+                    Đăng nhập
+                </button>
+
+                <!-- Đã đăng nhập: user dropdown -->
+                <div id="kc-user-menu" class="hidden relative">
+                    <button onclick="toggleUserMenu()"
+                        class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded-full hover:bg-green-100 transition">
+                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                        <span id="kc-user" class="font-bold text-sm"></span>
+                        <span id="kc-roles" class="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded-full"></span>
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <!-- Dropdown -->
+                    <div id="user-dropdown"
+                        class="hidden absolute right-0 top-12 w-56 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 z-50">
+                        <div class="px-3 py-2 border-b border-slate-100 mb-1">
+                            <p class="text-xs text-slate-400">Phiên đăng nhập</p>
+                            <p id="kc-ttl" class="text-xs font-mono text-orange-500 mt-0.5"></p>
+                        </div>
+                        <a href="/grafana/" target="_blank"
+                            class="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-xl transition">
+                            📊 Grafana Dashboard
+                        </a>
+                        <a href="/prometheus/" target="_blank"
+                            class="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-xl transition">
+                            🔥 Prometheus
+                        </a>
+                        <a href="/minio/" target="_blank"
+                            class="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-xl transition">
+                            🗄️ MinIO Storage
+                        </a>
+                        <div class="border-t border-slate-100 mt-1 pt-1">
+                            <button onclick="doLogout()"
+                                class="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl transition font-semibold">
+                                🚪 Đăng xuất
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </nav>
@@ -80,96 +120,152 @@
     </header>
 
     <!-- Student System Section -->
-    <section id="students" class="bg-slate-900 py-24">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
-                <div>
-                    <h2
-                        class="text-3xl font-extrabold text-white mb-2 tracking-tight italic decoration-orange-500 decoration-4 underline underline-offset-8">
-                        Dữ liệu sinh viên</h2>
-                    <p class="text-slate-400">Kết nối trực tiếp với Backend API qua Nginx Proxy</p>
-                </div>
-                <div class="flex gap-2 text-xs font-mono">
+    <section id="students" class="bg-slate-900 py-20">
+        <div class="max-w-5xl mx-auto px-6">
+
+            <!-- Section header -->
+            <div class="text-center mb-10">
+                <span
+                    class="inline-block bg-orange-500/20 text-orange-400 border border-orange-500/30 text-xs font-bold px-3 py-1 rounded-full mb-3">LIVE
+                    DATA</span>
+                <h2 class="text-3xl font-extrabold text-white mb-2">Dữ liệu sinh viên</h2>
+                <p class="text-slate-400 text-sm">Kết nối trực tiếp với Backend API qua Nginx Proxy</p>
+                <div class="flex items-center justify-center gap-3 mt-4 text-xs font-mono">
                     <span
-                        class="px-3 py-1 bg-green-500/20 text-green-400 rounded-full border border-green-500/30 font-bold">API:
+                        class="px-3 py-1 bg-green-500/20 text-green-400 rounded-full border border-green-500/30 font-bold">GET
                         /api/student</span>
-                    <span
-                        class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full border border-blue-500/30 font-bold">Status:
-                        Online</span>
+                    <span id="apiStatus"
+                        class="px-3 py-1 bg-slate-700 text-slate-400 rounded-full border border-slate-600 font-bold">Đang
+                        tải...</span>
                 </div>
             </div>
 
-            <!-- Student List Grid -->
-            <div id="student-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Data will be injected here from main.js or the script below -->
-                <div class="col-span-full py-12 text-center text-slate-500 animate-pulse">
-                    Đang tải dữ liệu từ server ông Việt...
+            <!-- Table card -->
+            <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                <!-- Table header bar -->
+                <div class="px-6 py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+                        <span class="text-sm font-semibold text-gray-600">Danh sách thành viên nhóm</span>
+                    </div>
+                    <a href="/api/student" target="_blank"
+                        class="text-xs text-orange-500 hover:text-orange-600 font-semibold flex items-center gap-1 transition">
+                        Xem API →
+                    </a>
+                </div>
+
+                <!-- Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm" id="studentTable">
+                        <thead>
+                            <tr class="border-b border-gray-100">
+                                <th
+                                    class="text-center px-6 py-3 text-gray-400 font-semibold uppercase text-xs tracking-wider w-16">
+                                    #</th>
+                                <th
+                                    class="text-center px-6 py-3 text-gray-400 font-semibold uppercase text-xs tracking-wider">
+                                    Họ tên</th>
+                                <th
+                                    class="text-center px-6 py-3 text-gray-400 font-semibold uppercase text-xs tracking-wider">
+                                    MSSV</th>
+                                <th
+                                    class="text-center px-6 py-3 text-gray-400 font-semibold uppercase text-xs tracking-wider">
+                                    Chuyên ngành</th>
+                                <th
+                                    class="text-center px-6 py-3 text-gray-400 font-semibold uppercase text-xs tracking-wider">
+                                    Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody id="student-list" class="divide-y divide-gray-50">
+                            <tr>
+                                <td colspan="5" class="px-6 py-12 text-center text-gray-400">
+                                    <div class="flex flex-col items-center gap-2">
+                                        <div
+                                            class="w-8 h-8 border-2 border-orange-300 border-t-orange-500 rounded-full animate-spin">
+                                        </div>
+                                        <span class="text-sm">Đang tải dữ liệu...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Table footer -->
+                <div class="px-6 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+                    <span id="studentCount" class="text-xs text-gray-400">— bản ghi</span>
+                    <span class="text-xs text-gray-300 font-mono">db: studentdb · table: students</span>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Blog Section -->
-    <section id="blogs" class="max-w-7xl mx-auto px-6 py-24">
-        <div class="text-center mb-16">
-            <h2 class="text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">Blog cá nhân</h2>
-            <div class="w-20 h-1.5 bg-orange-500 mx-auto rounded-full"></div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
-            <!-- Travel Blog -->
-            <div class="group cursor-pointer">
-                <div class="relative h-[400px] rounded-3xl overflow-hidden mb-6 shadow-xl">
-                    <img src="https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&q=80&w=800"
-                        class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
-                    <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent p-8 flex flex-col justify-end">
-                        <span
-                            class="bg-orange-500 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full w-fit mb-4">Du
-                            lịch</span>
-                        <h3 class="text-2xl font-bold text-white mb-2 leading-tight">Đà Lạt: Nơi Tiếng Chuông Gió Gặp Gỡ
-                            Những Kẻ Mộng Mơ</h3>
-                        <a href="blog/travel.html"
-                            class="text-white font-bold flex items-center gap-2 hover:gap-4 transition-all">Đọc bài này
-                            <span>→</span></a>
-                    </div>
-                </div>
+    <section id="blogs" class="bg-orange-50 py-24 border-t border-orange-100">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">Blog cá nhân</h2>
+                <div class="w-20 h-1.5 bg-orange-500 mx-auto rounded-full"></div>
             </div>
 
-            <!-- Tech Blog -->
-            <div class="group cursor-pointer">
-                <div class="relative h-[400px] rounded-3xl overflow-hidden mb-6 shadow-xl">
-                    <img src="assets/img/tech-hero.jpg"
-                        class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
-                    <div
-                        class="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent p-8 flex flex-col justify-end">
-                        <span
-                            class="bg-cyan-500 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full w-fit mb-4">Công
-                            nghệ</span>
-                        <h3 class="text-2xl font-bold text-white mb-2 leading-tight">Docker & Microservices: Tối ưu
-                            UI/UX thực thụ</h3>
-                        <a href="blog/tech.html"
-                            class="text-white font-bold flex items-center gap-2 hover:gap-4 transition-all">Tìm hiểu
-                            ngay <span>→</span></a>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <!-- Travel Blog -->
+                <div class="group cursor-pointer">
+                    <div class="relative h-[400px] rounded-3xl overflow-hidden mb-6 shadow-xl">
+                        <img src="https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&q=80&w=800"
+                            class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
+                        <div
+                            class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent p-8 flex flex-col justify-end">
+                            <span
+                                class="bg-orange-500 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full w-fit mb-4">Du
+                                lịch</span>
+                            <h3 class="text-2xl font-bold text-white mb-2 leading-tight">Đà Lạt: Nơi Tiếng Chuông Gió
+                                Gặp Gỡ
+                                Những Kẻ Mộng Mơ</h3>
+                            <a href="blog/travel.html"
+                                class="text-white font-bold flex items-center gap-2 hover:gap-4 transition-all">Đọc bài
+                                này
+                                <span>→</span></a>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Food Blog -->
-            <div class="group cursor-pointer">
-                <div class="relative h-[400px] rounded-3xl overflow-hidden mb-6 shadow-xl">
-                    <img src="assets/img/bun-dau-mam-tom.jpg"
-                        class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
-                    <div
-                        class="absolute inset-0 bg-gradient-to-t from-rose-900/80 via-transparent to-transparent p-8 flex flex-col justify-end">
-                        <span
-                            class="bg-rose-500 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full w-fit mb-4">Ẩm
-                            thực</span>
-                        <h3 class="text-2xl font-bold text-white mb-2 leading-tight">Bún Đậu Hàng Khay: Tinh Hoa Mắm Tôm
-                            Phố Cổ</h3>
-                        <a href="blog/food.html"
-                            class="text-white font-bold flex items-center gap-2 hover:gap-4 transition-all">Khám phá
-                            <span>→</span></a>
+                <!-- Tech Blog -->
+                <div class="group cursor-pointer">
+                    <div class="relative h-[400px] rounded-3xl overflow-hidden mb-6 shadow-xl">
+                        <img src="assets/img/tech-hero.jpg"
+                            class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
+                        <div
+                            class="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent p-8 flex flex-col justify-end">
+                            <span
+                                class="bg-cyan-500 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full w-fit mb-4">Công
+                                nghệ</span>
+                            <h3 class="text-2xl font-bold text-white mb-2 leading-tight">Docker & Microservices: Tối ưu
+                                UI/UX thực thụ</h3>
+                            <a href="blog/tech.html"
+                                class="text-white font-bold flex items-center gap-2 hover:gap-4 transition-all">Tìm hiểu
+                                ngay <span>→</span></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Food Blog -->
+                <div class="group cursor-pointer">
+                    <div class="relative h-[400px] rounded-3xl overflow-hidden mb-6 shadow-xl">
+                        <img src="assets/img/bun-dau-mam-tom.jpg"
+                            class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
+                        <div
+                            class="absolute inset-0 bg-gradient-to-t from-rose-900/80 via-transparent to-transparent p-8 flex flex-col justify-end">
+                            <span
+                                class="bg-rose-500 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full w-fit mb-4">Ẩm
+                                thực</span>
+                            <h3 class="text-2xl font-bold text-white mb-2 leading-tight">Bún Đậu Hàng Khay: Tinh Hoa Mắm
+                                Tôm
+                                Phố Cổ</h3>
+                            <a href="blog/food.html"
+                                class="text-white font-bold flex items-center gap-2 hover:gap-4 transition-all">Khám phá
+                                <span>→</span></a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -177,102 +273,261 @@
     </section>
 
     <!-- Footer -->
-    <footer class="py-12 border-t border-slate-200 text-center text-sm text-slate-400">
-        <p>© 2024 Ngôn's MiniCloud Personal Project. Built with ❤️ and Nginx.</p>
+    <footer class="bg-slate-900 py-10 text-center text-sm text-slate-400 border-t border-slate-800">
+        <div class="flex items-center justify-center gap-2 mb-2">
+            <div
+                class="w-6 h-6 bg-orange-500 rounded-md flex items-center justify-center text-white font-black text-xs">
+                M</div>
+            <span class="font-bold text-white">MiniCloud</span>
+        </div>
+        <p>Cloud Computing Course Project — MiniCloud Infrastructure</p>
     </footer>
 
-    <!-- Script kết nối API sinh viên + Keycloak OIDC -->
+    <!-- Login Panel (popup) -->
+    <div id="login-panel"
+        class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm mx-4">
+            <div class="flex items-center gap-3 mb-6">
+                <div
+                    class="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center text-white font-bold text-lg">
+                    M</div>
+                <div>
+                    <h2 class="font-extrabold text-slate-900">Đăng nhập MiniCloud</h2>
+                    <p class="text-xs text-slate-400">Xác thực qua Keycloak</p>
+                </div>
+            </div>
+            <div class="space-y-3 mb-4">
+                <input id="login-user" type="text" placeholder="Username"
+                    class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100" />
+                <input id="login-pass" type="password" placeholder="Password"
+                    class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                    onkeydown="if(event.key==='Enter') doLogin()" />
+            </div>
+            <p id="login-msg" class="text-xs text-red-500 mb-3 hidden"></p>
+            <div class="flex gap-2">
+                <button onclick="doLogin()"
+                    class="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl transition">
+                    Đăng nhập
+                </button>
+                <button onclick="toggleLoginPanel()"
+                    class="px-4 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold rounded-xl transition">
+                    Huỷ
+                </button>
+            </div>
+            <p class="text-xs text-slate-400 text-center mt-4">Token được lưu an toàn trong Redis · TTL theo Keycloak
+            </p>
+        </div>
+    </div>
+
+    <!-- Script kết nối API sinh viên + Keycloak SSO tập trung -->
     <script src="https://cdn.jsdelivr.net/npm/keycloak-js@latest/dist/keycloak.min.js"></script>
+    <script src="assets/js/auth.js"></script>
     <script>
-        // ── Keycloak ─────────────────────────────────────────────────────
-        const kc = new Keycloak({ url: 'http://localhost:8088/auth', realm: 'realm_52300267', clientId: 'flask-app' });
-        function kcLogout() { kc.logout({ redirectUri: window.location.href }); }
+        // ── UI helpers ────────────────────────────────────────────────────
+        function toggleLoginPanel() {
+            document.getElementById('login-panel').classList.toggle('hidden');
+            document.getElementById('login-msg').classList.add('hidden');
+        }
 
-        kc.init({ onLoad: 'login-required', checkLoginIframe: false })
-            .then(authenticated => {
-                if (authenticated) {
-                    const user = document.getElementById('kc-user');
-                    const btn = document.getElementById('kc-btn');
-                    if (user) { user.textContent = '👤 ' + (kc.tokenParsed?.preferred_username || 'User'); user.classList.remove('hidden'); }
-                    if (btn) { btn.textContent = 'Đăng xuất'; btn.onclick = kcLogout; btn.classList.remove('hidden'); }
+        function toggleUserMenu() {
+            document.getElementById('user-dropdown').classList.toggle('hidden');
+        }
+
+        // Đóng dropdown khi click ra ngoài
+        document.addEventListener('click', e => {
+            const menu = document.getElementById('user-dropdown');
+            const btn = document.getElementById('kc-user-menu');
+            if (menu && !menu.classList.contains('hidden') && !btn.contains(e.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+
+        // ── Login bằng username/password ──────────────────────────────────
+        async function doLogin() {
+            const username = document.getElementById('login-user').value.trim();
+            const password = document.getElementById('login-pass').value.trim();
+            const msg = document.getElementById('login-msg');
+            if (!username || !password) {
+                msg.textContent = 'Vui lòng nhập đủ username và password.';
+                msg.classList.remove('hidden'); return;
+            }
+            const btn = document.querySelector('#login-panel button[onclick="doLogin()"]');
+            btn.textContent = 'Đang xác thực...'; btn.disabled = true;
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem('mc_access_token', data.access_token);
+                    // Lưu vào cookie để Nginx auth_request đọc được
+                    const maxAge = data.expires_in || 300;
+                    document.cookie = `mc_token=${data.access_token}; path=/; max-age=${maxAge}; SameSite=Lax`;
+                    toggleLoginPanel();
+                    showLoggedIn({ username: data.username, roles: data.roles, ttl_remaining: data.expires_in });
                     loadStudents();
+                } else {
+                    msg.textContent = data.detail || data.error || 'Đăng nhập thất bại.';
+                    msg.classList.remove('hidden');
                 }
-            })
-            .catch(() => { loadStudents(); });
+            } catch (e) {
+                msg.textContent = 'Không kết nối được server.';
+                msg.classList.remove('hidden');
+            }
+            btn.textContent = 'Đăng nhập'; btn.disabled = false;
+        }
 
-        // ── Avatar helpers ───────────────────────────────────────────────
-        const AVATARS = [
-            'https://i.pravatar.cc/150?img=47',
-            'https://i.pravatar.cc/150?img=32',
-            'https://i.pravatar.cc/150?img=12',
-        ];
-        const ROLES = {
-            '52300232': { role: 'Frontend & UI/UX', icon: '🎨', color: 'from-orange-400 to-pink-500', avatar: AVATARS[0] },
-            '52300299': { role: 'Cloud Infrastructure', icon: '☁️', color: 'from-sky-400 to-indigo-500', avatar: AVATARS[1] },
-            '52300267': { role: 'Backend & DevOps', icon: '⚙️', color: 'from-emerald-400 to-teal-600', avatar: AVATARS[2] },
+        // ── Đăng xuất ─────────────────────────────────────────────────────
+        async function doLogout() {
+            const token = localStorage.getItem('mc_access_token');
+            if (token) {
+                await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                }).catch(() => { });
+                localStorage.removeItem('mc_access_token');
+            }
+            // Xóa cookie
+            document.cookie = 'mc_token=; path=/; max-age=0';
+            // Reset UI
+            document.getElementById('kc-user-menu').classList.add('hidden');
+            document.getElementById('kc-btn').classList.remove('hidden');
+            document.getElementById('user-dropdown').classList.add('hidden');
+            loadStudents();
+        }
+
+        // ── Hiển thị trạng thái đã đăng nhập ─────────────────────────────
+        function showLoggedIn(session) {
+            document.getElementById('kc-btn').classList.add('hidden');
+            document.getElementById('kc-user-menu').classList.remove('hidden');
+            document.getElementById('kc-user').textContent = '👤 ' + session.username;
+            const roleEl = document.getElementById('kc-roles');
+            const isAdmin = session.roles.includes('admin');
+            const isEditor = session.roles.includes('editor');
+            roleEl.textContent = isAdmin ? 'Admin' : isEditor ? 'Editor' : 'Viewer';
+            roleEl.className = 'text-xs px-2 py-0.5 rounded-full font-bold ' +
+                (isAdmin ? 'bg-red-100 text-red-700' : isEditor ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700');
+            // TTL countdown
+            updateTTL(session.ttl_remaining);
+        }
+
+        let _ttlInterval = null;
+        function updateTTL(seconds) {
+            clearInterval(_ttlInterval);
+            let remaining = seconds;
+            const el = document.getElementById('kc-ttl');
+            const tick = () => {
+                if (remaining <= 0) { clearInterval(_ttlInterval); el.textContent = 'Hết hạn — vui lòng đăng nhập lại'; el.className = 'text-xs font-mono text-red-500 mt-0.5'; return; }
+                const m = Math.floor(remaining / 60), s = remaining % 60;
+                el.textContent = `Còn ${m}p ${s}s`;
+                remaining--;
+            };
+            tick();
+            _ttlInterval = setInterval(tick, 1000);
+        }
+
+        // ── Khởi động: kiểm tra token đã lưu ─────────────────────────────
+        (async function init() {
+            const token = localStorage.getItem('mc_access_token');
+            if (token) {
+                try {
+                    const res = await fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + token } });
+                    if (res.ok) {
+                        const session = await res.json();
+                        // Refresh cookie TTL
+                        document.cookie = `mc_token=${token}; path=/; max-age=${session.ttl_remaining}; SameSite=Lax`;
+                        showLoggedIn(session);
+                    } else {
+                        localStorage.removeItem('mc_access_token');
+                    }
+                } catch (e) { }
+            }
+            loadStudents();
+        })();
+
+        // ── Avatar helpers ────────────────────────────────────────────────
+        const AVATARS = ['https://i.pravatar.cc/150?img=47', 'https://i.pravatar.cc/150?img=32', 'https://i.pravatar.cc/150?img=12'];
+        const ROLES_MAP = {
+            '52300232': { role: 'Frontend & UI/UX', icon: '🎨', color: 'bg-orange-100 text-orange-600', avatar: AVATARS[0] },
+            '52300299': { role: 'Cloud Infrastructure', icon: '☁️', color: 'bg-blue-100 text-blue-600', avatar: AVATARS[1] },
+            '52300267': { role: 'Backend & DevOps', icon: '⚙️', color: 'bg-emerald-100 text-emerald-600', avatar: AVATARS[2] },
         };
 
-        // ── Load sinh viên ───────────────────────────────────────────────
+        // ── Load sinh viên ────────────────────────────────────────────────
         async function loadStudents() {
-            const container = document.getElementById('student-list');
+            const tbody = document.getElementById('student-list');
+            const token = localStorage.getItem('mc_access_token');
+            const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
             try {
-                const res = await fetch('/api/student');
+                const res = await fetch('/api/student', { headers });
                 const data = await res.json();
+
+                const statusEl = document.getElementById('apiStatus');
+                if (statusEl) {
+                    statusEl.textContent = res.ok ? '✅ Online' : '❌ Error';
+                    statusEl.className = res.ok
+                        ? 'px-3 py-1 bg-green-500/20 text-green-400 rounded-full border border-green-500/30 font-bold'
+                        : 'px-3 py-1 bg-red-500/20 text-red-400 rounded-full border border-red-500/30 font-bold';
+                }
+
                 if (!Array.isArray(data) || data.length === 0) {
-                    container.innerHTML = '<div class="col-span-full text-center text-slate-400 py-10 italic">Danh sách trống.</div>';
+                    tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-12 text-center text-gray-400 italic">Danh sách trống.</td></tr>`;
                     return;
                 }
-                container.innerHTML = data.map((s, i) => {
+
+                const countEl = document.getElementById('studentCount');
+                if (countEl) countEl.textContent = `${data.length} sinh viên`;
+
+                tbody.innerHTML = data.map((s, i) => {
                     const id = s.id || s.student_id || 'N/A';
                     const name = s.name || s.fullname || 'N/A';
-                    const info = ROLES[id] || { role: s.major || 'N/A', icon: '🎓', color: 'from-slate-400 to-slate-600', avatar: `https://i.pravatar.cc/150?img=${i + 20}` };
+                    const major = s.major || 'N/A';
+                    const info = ROLES_MAP[id] || { icon: '🎓', color: 'bg-gray-100 text-gray-500' };
                     return `
-                    <div class="relative bg-white rounded-[1.5rem] shadow-md hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 overflow-hidden group">
-                        <!-- Gradient header -->
-                        <div class="h-24 bg-gradient-to-br ${info.color} relative">
-                            <div class="absolute inset-0 opacity-20" style="background-image:url('https://www.transparenttextures.com/patterns/cubes.png')"></div>
-                            <span class="absolute top-3 right-3 text-2xl">${info.icon}</span>
-                            <span class="absolute bottom-2 left-4 text-[10px] font-bold text-white/80 uppercase tracking-widest">${info.role}</span>
-                        </div>
-                        <!-- Avatar -->
-                        <div class="flex justify-center -mt-10 mb-3">
-                            <img src="${info.avatar}" alt="${name}"
-                                 class="w-20 h-20 rounded-full border-4 border-white shadow-lg object-cover group-hover:scale-105 transition duration-300">
-                        </div>
-                        <!-- Info -->
-                        <div class="px-5 pb-5 text-center">
-                            <h4 class="text-base font-extrabold text-slate-900 leading-tight mb-1">${name}</h4>
-                            <p class="text-xs font-mono text-slate-400 mb-3">MSSV: ${id}</p>
-                            <div class="flex flex-col gap-1 text-left text-xs text-slate-500 bg-slate-50 rounded-xl p-3">
-                                <div class="flex items-center gap-2"><span class="text-slate-300">📚</span><span>${s.major || info.role}</span></div>
-                                <div class="flex items-center gap-2"><span class="text-slate-300">🏫</span><span>ĐH Tôn Đức Thắng</span></div>
-                                <div class="flex items-center gap-2"><span class="text-slate-300">📅</span><span>Khóa 2023 – 2027</span></div>
-                            </div>
-                            <div class="mt-3 flex items-center justify-center gap-1">
-                                <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-                                <span class="text-[10px] font-bold text-green-500 uppercase tracking-widest">Active</span>
-                            </div>
-                        </div>
-                    </div>`;
+                    <tr class="hover:bg-orange-50/40 transition-colors">
+                        <td class="px-6 py-4 text-center">
+                            <span class="text-xs font-bold text-gray-300">${String(i + 1).padStart(2, '0')}</span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <div class="font-bold text-gray-800 text-sm">${name}</div>
+                            <div class="text-xs text-gray-400 mt-0.5">ĐH Tôn Đức Thắng</div>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="font-mono text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-lg">${id}</span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full ${info.color}">
+                                ${info.icon} ${major}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="inline-flex items-center gap-1 text-xs font-bold text-green-600">
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                                Active
+                            </span>
+                        </td>
+                    </tr>`;
                 }).join('');
             } catch (err) {
-                console.error('Lỗi khi lấy dữ liệu:', err);
-                container.innerHTML = `
-                    <div class="col-span-full py-12 text-center text-rose-500 bg-rose-50 rounded-3xl border border-rose-100">
-                        <p class="font-bold">⚠️ Không thể kết nối Backend!</p>
-                        <p class="text-xs mt-2">Kiểm tra Docker đã chạy chưa.</p>
-                    </div>`;
+                const statusEl = document.getElementById('apiStatus');
+                if (statusEl) { statusEl.textContent = '❌ Offline'; statusEl.className = 'px-3 py-1 bg-red-500/20 text-red-400 rounded-full border border-red-500/30 font-bold'; }
+                tbody.innerHTML = `
+                    <tr><td colspan="5" class="px-6 py-12 text-center">
+                        <div class="flex flex-col items-center gap-2 text-red-400">
+                            <span class="text-2xl">⚠️</span>
+                            <span class="font-semibold text-sm">Không thể kết nối Backend</span>
+                            <button onclick="loadStudents()" class="text-xs text-orange-500 hover:underline mt-1">Thử lại</button>
+                        </div>
+                    </td></tr>`;
             }
         }
 
-        document.addEventListener('DOMContentLoaded', loadStudents);
-
-        // ── Instance Badge (đọc từ meta tag do entrypoint inject) ────────
+        // ── Instance Badge ────────────────────────────────────────────────
         (function () {
             const id = document.querySelector('meta[name="instance-id"]')?.content || '1';
-            const cfg = id === '1'
-                ? { color: '#f97316', shadow: 'rgba(249,115,22,0.4)', emoji: '🟠' }
-                : { color: '#6366f1', shadow: 'rgba(99,102,241,0.4)', emoji: '🟣' };
+            const cfg = id === '1' ? { color: '#f97316', shadow: 'rgba(249,115,22,0.4)', emoji: '🟠' } : { color: '#6366f1', shadow: 'rgba(99,102,241,0.4)', emoji: '🟣' };
             const badge = document.createElement('div');
             badge.textContent = cfg.emoji + ' Web Instance #' + id;
             badge.style.cssText = `position:fixed;bottom:1rem;right:1rem;background:${cfg.color};color:white;padding:0.4rem 1rem;border-radius:9999px;font-size:0.75rem;font-weight:700;z-index:9999;box-shadow:0 4px 12px ${cfg.shadow};`;

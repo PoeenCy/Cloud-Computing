@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Không tìm thấy — MiniCloud</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-6">
+
+    <div class="max-w-md w-full">
+        <div class="bg-white rounded-3xl shadow-xl border border-gray-100 p-10 text-center">
+
+            <!-- Big 404 -->
+            <div class="relative mb-6">
+                <div class="text-[7rem] font-black text-orange-100 leading-none select-none"
+                    style="text-shadow: 2px 2px 0 rgba(249, 115, 22, 0.1);">404</div>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <div
+                        class="w-20 h-20 bg-gradient-to-br from-orange-50 to-orange-100 border-3 border-orange-300 rounded-2xl flex items-center justify-center shadow-lg">
+                        <svg class="w-10 h-10 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <span
+                class="inline-block bg-gray-100 text-gray-500 border border-gray-200 text-xs font-bold px-3 py-1 rounded-full mb-4">
+                Không tìm thấy trang
+            </span>
+
+            <h1 class="text-2xl font-extrabold text-gray-900 mb-2">Trang không tồn tại</h1>
+            <p class="text-gray-500 text-sm mb-6 leading-relaxed">
+                Đường dẫn bạn truy cập không có trong hệ thống MiniCloud.<br>
+                Có thể URL bị sai hoặc trang đã bị xóa.
+            </p>
+
+            <!-- URL box -->
+            <div class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mb-6 text-left">
+                <p class="text-gray-400 text-xs mb-1 font-medium">URL không hợp lệ:</p>
+                <p id="bad-url" class="text-red-400 font-mono text-xs break-all"></p>
+            </div>
+
+            <div class="flex flex-col gap-3">
+                <a href="/"
+                    class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-xl transition shadow-md shadow-orange-200 flex items-center justify-center gap-2">
+                    🏠 Về trang chủ
+                </a>
+                <button onclick="history.back()"
+                    class="bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold py-3 px-6 rounded-xl transition flex items-center justify-center gap-2">
+                    ← Quay lại trang trước
+                </button>
+            </div>
+        </div>
+
+        <p class="text-center text-gray-400 text-xs mt-6">MiniCloud · Hệ thống Cloud cá nhân</p>
+    </div>
+
+    <script>
+        document.getElementById('bad-url').textContent = window.location.href;
+    </script>
+</body>
+
+</html>

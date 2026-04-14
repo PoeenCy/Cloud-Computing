@@ -26,7 +26,18 @@ scrape_configs:
     static_configs:
       - targets: ['minicloud-mysqld-exporter:9104']
 
-  # nginx-prometheus-exporter — nginx connection metrics
+  # nginx-prometheus-exporter — nginx connection metrics từ web1 và web2
   - job_name: 'web'
+    static_configs:
+      - targets: ['10.10.3.11:80']
+        labels:
+          instance: 'web1'
+      - targets: ['10.10.3.20:80']
+        labels:
+          instance: 'web2'
+    metrics_path: /stub_status
+
+  # nginx-exporter container (scrape exporter itself)
+  - job_name: 'nginx-exporter'
     static_configs:
       - targets: ['minicloud-nginx-exporter:9113']

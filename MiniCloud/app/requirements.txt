@@ -4,3 +4,5 @@ requests==2.31.0
 flask-oidc
 okta
 prometheus-flask-exporter
+PyJWT>=2.0.0
+redis>=5.0.0
