@@ -270,8 +270,54 @@ docker exec minicloud-monitoring wget -qO- \
 - ✅ CHANGELOG.md - Lịch sử thay đổi (file này)
 - ✅ Mermaid diagram - Sơ đồ kiến trúc mới
 
+## 🔐 MinIO SSO Integration (Latest Update)
+
+### OIDC Configuration
+**Mới thêm:** MinIO hỗ trợ đăng nhập SSO qua Keycloak
+
+**Environment Variables:**
+```yaml
+MINIO_IDENTITY_OPENID_CONFIG_URL: "http://10.10.1.13:8080/auth/realms/realm_52300267/.well-known/openid-configuration"
+MINIO_IDENTITY_OPENID_CLIENT_ID: "minio"
+MINIO_IDENTITY_OPENID_CLIENT_SECRET: "minio-secret"
+MINIO_IDENTITY_OPENID_SCOPES: "openid,profile,email"
+MINIO_IDENTITY_OPENID_REDIRECT_URI: "http://localhost:8088/minio/oauth_callback"
+MINIO_IDENTITY_OPENID_CLAIM_NAME: "preferred_username"
+```
+
+**Nginx Configuration:**
+```nginx
+location /minio/ {
+    proxy_intercept_errors off;  # Để MinIO tự xử lý auth
+    proxy_pass http://10.10.2.15:9001/;
+    proxy_redirect ~^/(.*)$ /minio/$1;
+    # WebSocket support cho Console
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+}
+```
+
+**Keycloak Client Setup:**
+- Client ID: `minio`
+- Client Type: OpenID Connect
+- Client Authentication: ON (confidential)
+- Standard Flow: ON
+- Valid Redirect URIs: `http://localhost:8088/minio/oauth_callback`
+
+**User Flow:**
+1. User đăng nhập vào website qua Keycloak
+2. Truy cập MinIO Console: http://localhost:8088/minio/
+3. Click "Login with SSO"
+4. Tự động authenticated qua Keycloak session
+5. Không cần nhập lại username/password
+
+**Documentation:**
+- ✅ MINIO_SSO_SETUP.md - Hướng dẫn chi tiết từng bước
+- ✅ setup-minio-sso.sh - Script tự động hóa setup
+
 ---
 
-**Version:** 2.0  
+**Version:** 2.1  
 **Date:** April 15, 2026  
-**Status:** ✅ Production Ready
+**Status:** ✅ Production Ready + SSO Enabled
