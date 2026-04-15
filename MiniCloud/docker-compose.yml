@@ -74,6 +74,8 @@ services:
         condition: service_healthy
       app:
         condition: service_healthy
+      app2:
+        condition: service_healthy
       auth:
         condition: service_healthy
     healthcheck:
@@ -147,6 +149,45 @@ services:
       REDIS_HOST: minicloud-redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_secret_123}
+      INSTANCE_ID: 1
+    secrets:
+      - db_password
+    volumes:
+      - ./app:/app
+    working_dir: /app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      dns:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8081/api/hello || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  app2:
+    build: ./app
+    container_name: minicloud-app2
+    networks:
+      frontend-net:
+        ipv4_address: 10.10.1.22
+      backend-net:
+        ipv4_address: 10.10.2.22
+      mgmt-net:
+        ipv4_address: 10.10.3.24
+    dns:
+      - 10.10.3.53
+    environment:
+      DB_USER: ${DB_USER:-admin}
+      REDIS_HOST: minicloud-redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_secret_123}
+      INSTANCE_ID: 2
     secrets:
       - db_password
     volumes:
@@ -249,10 +290,6 @@ services:
     networks:
       backend-net:
         ipv4_address: 10.10.2.15
-      mgmt-net:
-        ipv4_address: 10.10.3.15
-      frontend-net:
-        ipv4_address: 10.10.1.15
     dns:
       - 10.10.3.53
     secrets:
@@ -278,10 +315,12 @@ services:
     image: prom/prometheus:latest
     container_name: minicloud-monitoring
     networks:
-      frontend-net:
-        ipv4_address: 10.10.1.16
       mgmt-net:
         ipv4_address: 10.10.3.16
+      backend-net:
+        ipv4_address: 10.10.2.21
+      frontend-net:
+        ipv4_address: 10.10.1.16
     dns:
       - 10.10.3.53
     environment:
@@ -297,7 +336,7 @@ services:
       dns:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:9090/-/healthy || exit 1"]
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9090/prometheus/-/healthy || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -324,8 +363,6 @@ services:
     image: grafana/grafana:latest
     container_name: minicloud-grafana
     networks:
-      frontend-net:
-        ipv4_address: 10.10.1.18
       mgmt-net:
         ipv4_address: 10.10.3.18
     dns:
@@ -351,8 +388,6 @@ services:
     networks:
       backend-net:
         ipv4_address: 10.10.2.20
-      mgmt-net:
-        ipv4_address: 10.10.3.22
     dns:
       - 10.10.3.53
     secrets:
@@ -409,10 +444,12 @@ services:
     networks:
       mgmt-net:
         ipv4_address: 10.10.3.21
+      frontend-net:
+        ipv4_address: 10.10.1.21
     dns:
       - 10.10.3.53
     command:
-      - "--nginx.scrape-uri=http://10.10.3.11:80/stub_status"
+      - "--nginx.scrape-uri=http://10.10.1.11:80/stub_status"
     restart: unless-stopped
     depends_on:
       - web1
@@ -424,8 +461,6 @@ services:
     networks:
       backend-net:
         ipv4_address: 10.10.2.16
-      mgmt-net:
-        ipv4_address: 10.10.3.23
     dns:
       - 10.10.3.53
     command: redis-server --requirepass ${REDIS_PASSWORD:-redis_secret_123} --maxmemory 128mb --maxmemory-policy allkeys-lru
@@ -438,6 +473,24 @@ services:
       interval: 15s
       timeout: 5s
       retries: 3
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: minicloud-promtail
+    networks:
+      mgmt-net:
+        ipv4_address: 10.10.3.22
+    dns:
+      - 10.10.3.53
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - ./promtail/config.yml:/etc/promtail/config.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+    depends_on:
+      loki:
+        condition: service_healthy
 
 volumes:
   db_data:
