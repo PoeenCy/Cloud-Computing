@@ -222,5 +222,3 @@ Các dashboards này được thiết kế đơn giản để bạn có thể:
 1. **Import và dùng ngay** - Không cần config gì thêm
 2. **Hiểu được queries** - Dễ dàng customize
 3. **Mở rộng** - Thêm panels mới theo nhu cầu
-
-**Happy monitoring! 🚀**

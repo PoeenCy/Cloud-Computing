@@ -86,8 +86,39 @@ docker compose ps
 
 ---
 
+---
+
+## ☁️ Deploy lên Google Cloud Platform
+
+### 📖 Hướng dẫn chi tiết từ đầu đến cuối
+
+**→ Đọc file: [HUONG_DAN_DEPLOY_GCP.md](./HUONG_DAN_DEPLOY_GCP.md)**
+
+Hướng dẫn đầy đủ cho người mới, bao gồm:
+- ✅ Tạo tài khoản GCP (nhận $300 credit)
+- ✅ Cài đặt Google Cloud SDK
+- ✅ Tạo VM ở Singapore (delay thấp ~20ms)
+- ✅ Deploy 17 containers
+- ✅ Quản lý VM và xử lý lỗi
+
+**Thời gian:** 45-60 phút  
+**Chi phí:** MIỄN PHÍ 15 tháng với $300 credit
+
+---
+
 ## Tài liệu chi tiết
 
+### Local Development
 - [`MiniCloud/README.md`](MiniCloud/README.md) — Kiến trúc đầy đủ, cấu hình port, bảo mật
 - [`MiniCloud/KIEM_TRA_HE_THONG.md`](MiniCloud/KIEM_TRA_HE_THONG.md) — Hướng dẫn kiểm tra từng service
 - [`MiniCloud/TEAM_ASSIGNMENT.md`](MiniCloud/TEAM_ASSIGNMENT.md) — Phân công nhiệm vụ nhóm
+
+### Cloud Deployment
+- [`GCP_QUICKSTART.md`](./GCP_QUICKSTART.md) — Deploy GCP trong 30 phút ⭐
+- [`GCP_DEPLOYMENT_GUIDE.md`](./GCP_DEPLOYMENT_GUIDE.md) — Hướng dẫn GCP chi tiết
+- [`AWS_DEPLOYMENT_TIMELINE.md`](./AWS_DEPLOYMENT_TIMELINE.md) — Timeline deploy AWS
+- [`CLOUD_DEPLOYMENT_COMPARISON.md`](./CLOUD_DEPLOYMENT_COMPARISON.md) — So sánh GCP vs AWS vs Azure
+
+### Scripts
+- [`MiniCloud/deploy-gcp.sh`](./MiniCloud/deploy-gcp.sh) — Script deploy tự động lên GCP
+- [`MiniCloud/gcp-cost-optimizer.sh`](./MiniCloud/gcp-cost-optimizer.sh) — Tối ưu chi phí GCP
