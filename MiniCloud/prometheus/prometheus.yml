@@ -1,4 +1,4 @@
-global:
+﻿global:
   scrape_interval: 15s
   evaluation_interval: 15s
 
@@ -28,16 +28,29 @@ scrape_configs:
     metrics_path: /metrics
 
   # mysqld-exporter — MariaDB metrics
-  - job_name: 'db'
+  - job_name: 'mysql'
     static_configs:
       - targets: ['10.10.2.20:9104']
+        labels:
+          instance: 'minicloud-db'
+          server: 'mariadb'
 
   # nginx-prometheus-exporter — nginx connection metrics
-  - job_name: 'nginx-exporter'
+  - job_name: 'web'
     static_configs:
       - targets: ['10.10.3.21:9113']
         labels:
           instance: 'web1'
+          server: 'nginx'
       - targets: ['10.10.3.23:9113']
         labels:
           instance: 'web2'
+          server: 'nginx'
+
+  # Redis Exporter
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['10.10.2.17:9121']
+        labels:
+          instance: 'minicloud-redis'
+          server: 'redis'

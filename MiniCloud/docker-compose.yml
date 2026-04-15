@@ -401,8 +401,12 @@ services:
       - -c
       - |
         DB_PASS=$$(cat /run/secrets/db_password)
-        export DATA_SOURCE_NAME="admin:$$DB_PASS@tcp(minicloud-db:3306)/minicloud"
-        exec /bin/mysqld_exporter --mysqld.address=minicloud-db:3306 --mysqld.username=admin
+        echo "[client]" > /tmp/.my.cnf
+        echo "user=admin" >> /tmp/.my.cnf
+        echo "password=$$DB_PASS" >> /tmp/.my.cnf
+        echo "host=minicloud-db" >> /tmp/.my.cnf
+        echo "port=3306" >> /tmp/.my.cnf
+        exec /bin/mysqld_exporter --config.my-cnf=/tmp/.my.cnf
     restart: unless-stopped
     depends_on:
       db:
@@ -492,6 +496,29 @@ services:
       test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-redis_secret_123}", "ping"]
       interval: 15s
       timeout: 5s
+      retries: 3
+
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: minicloud-redis-exporter
+    networks:
+      backend-net:
+        ipv4_address: 10.10.2.17
+      mgmt-net:
+        ipv4_address: 10.10.3.25
+    dns:
+      - 10.10.3.53
+    environment:
+      REDIS_ADDR: "minicloud-redis:6379"
+      REDIS_PASSWORD: "${REDIS_PASSWORD:-redis_secret_123}"
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9121/metrics || exit 1"]
+      interval: 30s
+      timeout: 10s
       retries: 3
 
   promtail:
