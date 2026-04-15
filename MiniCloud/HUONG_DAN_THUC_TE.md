@@ -142,30 +142,28 @@ MINIO_IDENTITY_OPENID_CLIENT_SECRET=minio-secret
 
 ### 4.1. Mở file docker-compose.yml
 
+**KHÔNG CẦN** sửa `docker-compose.yml` nữa! Hệ thống đã dùng Docker Secrets.
+
+### 4.2. Tạo secret file
+
+Thay vì hardcode vào docker-compose.yml, tạo file secret:
+
 ```bash
-cd MiniCloud
-notepad docker-compose.yml
+cd MiniCloud/secrets
+echo -n "abc123xyz456..." > minio_oidc_client_secret.txt
 ```
 
-Hoặc dùng editor bất kỳ.
+**Lưu ý**: 
+- Dùng `echo -n` để không thêm newline
+- Thay `abc123xyz456...` bằng Client Secret thật từ Keycloak
+- File này đã nằm trong `.gitignore`, không bị commit lên Git
 
-### 4.2. Tìm dòng cấu hình MinIO
+### 4.3. Kiểm tra file đã tạo đúng chưa
 
-Tìm section `storage:` và tìm dòng:
-
-```yaml
-MINIO_IDENTITY_OPENID_CLIENT_SECRET: "minio-secret"
+```bash
+cat minio_oidc_client_secret.txt
+# Phải hiển thị đúng Client Secret, không có khoảng trắng hay newline thừa
 ```
-
-### 4.3. Thay thế bằng Client Secret thật
-
-```yaml
-MINIO_IDENTITY_OPENID_CLIENT_SECRET: "abc123xyz456..."
-```
-
-**Lưu ý**: Giữ nguyên dấu ngoặc kép `""`
-
-### 4.4. Save file
 
 ---
 

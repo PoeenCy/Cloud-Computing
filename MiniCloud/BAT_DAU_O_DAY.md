@@ -124,30 +124,31 @@ Client secret: abc123xyz456...  [Copy]
 
 ---
 
-## 📍 BƯỚC 5: Cập nhật docker-compose.yml
+## 📍 BƯỚC 5: Lưu Client Secret vào Docker Secret
 
-### 5.1. Mở file
+### 5.1. Tạo secret file
+
+**KHÔNG** sửa `docker-compose.yml`! Hệ thống dùng Docker Secrets.
 
 ```powershell
-cd MiniCloud
-notepad docker-compose.yml
+cd MiniCloud/secrets
+"abc123xyz456..." | Out-File -NoNewline -Encoding ASCII minio_oidc_client_secret.txt
 ```
 
-### 5.2. Tìm dòng này (Ctrl+F tìm "MINIO_IDENTITY_OPENID_CLIENT_SECRET"):
+**Thay** `abc123xyz456...` bằng Client Secret thật từ Keycloak.
 
-```yaml
-MINIO_IDENTITY_OPENID_CLIENT_SECRET: "minio-secret"
+### 5.2. Kiểm tra file
+
+```powershell
+Get-Content minio_oidc_client_secret.txt
 ```
 
-### 5.3. Thay bằng Client Secret thật:
+Phải hiển thị đúng Client Secret, không có khoảng trắng hay newline thừa.
 
-```yaml
-MINIO_IDENTITY_OPENID_CLIENT_SECRET: "abc123xyz456..."
-```
-
-**Lưu ý**: Giữ nguyên dấu ngoặc kép `""`
-
-### 5.4. Save file (Ctrl+S)
+**Lưu ý bảo mật**:
+- ✅ File này đã nằm trong `.gitignore`
+- ✅ Không bị commit lên Git
+- ✅ Chỉ tồn tại local trên máy bạn
 
 ---
 

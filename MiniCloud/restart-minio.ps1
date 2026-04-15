@@ -12,6 +12,18 @@ if (-not (Test-Path "docker-compose.yml")) {
     exit 1
 }
 
+# Kiểm tra secret file tồn tại
+if (-not (Test-Path "secrets/minio_oidc_client_secret.txt")) {
+    Write-Host "[ERROR] Không tìm thấy secrets/minio_oidc_client_secret.txt" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Vui lòng tạo file secret trước:" -ForegroundColor Yellow
+    Write-Host "1. Lấy Client Secret từ Keycloak (Clients → minio → Credentials)" -ForegroundColor White
+    Write-Host "2. Chạy lệnh:" -ForegroundColor White
+    Write-Host '   "YOUR_CLIENT_SECRET" | Out-File -NoNewline -Encoding ASCII secrets/minio_oidc_client_secret.txt' -ForegroundColor Cyan
+    Write-Host ""
+    exit 1
+}
+
 # Bước 1: Kiểm tra container hiện tại
 Write-Host "[1/5] Kiểm tra MinIO container..." -ForegroundColor Blue
 $container = docker ps --filter "name=minicloud-storage" --format "{{.Names}}"
