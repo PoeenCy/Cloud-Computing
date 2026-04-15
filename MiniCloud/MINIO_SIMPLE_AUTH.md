@@ -2,7 +2,7 @@
 
 ## ✅ Cách hoạt động (Giống Prometheus)
 
-### Luồng đăng nhập tự động
+### Luồng đăng nhập
 
 ```
 1. User đăng nhập vào website
@@ -15,14 +15,24 @@
    
 3. Nếu token hợp lệ:
    → Nginx cho phép truy cập MinIO
-   → User vào MinIO Console tự động
+   → MinIO hiển thị trang login
+   → User nhập MinIO credentials (root user)
+   → Vào MinIO Console
    
 4. Nếu token không hợp lệ:
    → Nginx trả về 401
-   → Redirect đến trang login
+   → Redirect đến trang login website
 ```
 
-**Kết quả**: Đăng nhập 1 lần → Dùng được cả Website, Prometheus, và MinIO!
+**Giống Prometheus**:
+- ✅ Phải đăng nhập website trước (có cookie)
+- ✅ Sau đó mới vào được service
+- ✅ Service có credentials riêng (MinIO root user)
+
+**Khác với auto-login hoàn toàn**:
+- ❌ Không tự động điền username/password MinIO
+- ✅ User phải nhập credentials MinIO thủ công
+- ✅ Bảo mật hơn - không lưu password MinIO trong cookie
 
 ---
 
@@ -82,6 +92,8 @@ Username: testuser
 Password: Test@123
 ```
 
+**Kết quả**: Cookie `mc_token` được set
+
 ### Bước 2: Truy cập MinIO
 
 ```
@@ -89,21 +101,35 @@ URL: http://localhost:8088/minio/
 ```
 
 **Kết quả mong đợi**:
-- ✅ Tự động vào MinIO Console
-- ✅ Không cần nhập lại username/password
-- ✅ Không có button "Login with SSO"
-- ✅ Giống như Prometheus
+- ✅ Nginx kiểm tra cookie → OK
+- ✅ Cho phép truy cập MinIO
+- ✅ MinIO hiển thị trang login
+- ✅ **Không tự động đăng nhập** (đây là behavior đúng!)
 
-### Bước 3: Nếu chưa đăng nhập
+### Bước 3: Đăng nhập MinIO
+
+```
+Username: admin
+Password: minio_admin_secret_123!
+```
+
+(Xem trong `MiniCloud/secrets/storage_root_user.txt` và `storage_root_pass.txt`)
+
+**Kết quả**:
+- ✅ Vào MinIO Console
+- ✅ Quản lý buckets, files, users, policies
+
+### Bước 4: Nếu chưa đăng nhập website
 
 ```
 URL: http://localhost:8088/minio/
 ```
 
 **Kết quả**:
-- ❌ Nginx trả về 401
-- 🔄 Redirect đến trang login
-- ✅ Sau khi login → tự động vào MinIO
+- ❌ Nginx kiểm tra cookie → Không có
+- ❌ Trả về 401 Unauthorized
+- 🔄 Redirect đến trang login website
+- ✅ Sau khi login website → quay lại bước 2
 
 ---
 
@@ -156,20 +182,52 @@ docker logs minicloud-storage --tail 20
 - Không cần quản lý Client Secret
 - Không cần cấu hình OIDC phức tạp
 
-### 2. Consistent
-- Giống Prometheus
-- Giống các service khác
-- Cùng một cơ chế auth
+### 2. Consistent với Prometheus
+- Cùng cơ chế: cookie-based access control
+- Phải đăng nhập website trước
+- Service có credentials riêng
 
-### 3. User-friendly
-- Tự động đăng nhập
-- Không cần click button
-- Seamless experience
+### 3. Bảo mật
+- 2-layer authentication:
+  - Layer 1: Website authentication (cookie)
+  - Layer 2: MinIO authentication (root credentials)
+- Không lưu MinIO password trong cookie
+- Phân quyền rõ ràng
 
 ### 4. Dễ maintain
 - Ít config hơn
 - Ít secret hơn
 - Ít lỗi hơn
+
+---
+
+## ❓ FAQ
+
+### Q: Tại sao MinIO vẫn có trang đăng nhập?
+
+**A**: Đây là behavior đúng! Giống Prometheus:
+- Cookie `mc_token` chỉ cho phép **truy cập** service
+- Không tự động đăng nhập vào service
+- User phải nhập credentials của service (MinIO root user)
+
+### Q: Có thể tự động đăng nhập MinIO không?
+
+**A**: Có thể, nhưng không khuyến nghị vì:
+- ❌ Phải lưu MinIO password trong cookie (không bảo mật)
+- ❌ Hoặc phải tạo MinIO user tự động (phức tạp)
+- ✅ Cách hiện tại đơn giản và bảo mật hơn
+
+### Q: Khác gì với OIDC SSO?
+
+**A**: 
+- **OIDC SSO**: Tự động đăng nhập MinIO bằng Keycloak (phức tạp)
+- **Cookie auth**: Chỉ kiểm tra access, user tự đăng nhập MinIO (đơn giản)
+
+### Q: MinIO credentials là gì?
+
+**A**: 
+- Username: `admin` (trong `secrets/storage_root_user.txt`)
+- Password: `minio_admin_secret_123!` (trong `secrets/storage_root_pass.txt`)
 
 ---
 
