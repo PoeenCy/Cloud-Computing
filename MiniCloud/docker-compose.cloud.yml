@@ -1,0 +1,536 @@
+## docker-compose dành riêng cho cloud deployment
+## Khác với docker-compose.yml (local):
+##   - Dùng image từ DockerHub thay vì build local
+##   - Thay localhost bằng SERVER_IP (đọc từ .env)
+##   - Port 80 thay vì 8088
+
+networks:
+  frontend-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.1.0/24
+  backend-net:
+    driver: bridge
+    internal: true
+    ipam:
+      config:
+        - subnet: 10.10.2.0/24
+  mgmt-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.3.0/24
+
+secrets:
+  db_root_password:
+    file: ./secrets/db_root_password.txt
+  db_password:
+    file: ./secrets/db_password.txt
+  kc_admin_password:
+    file: ./secrets/kc_admin_password.txt
+  storage_root_user:
+    file: ./secrets/storage_root_user.txt
+  storage_root_pass:
+    file: ./secrets/storage_root_pass.txt
+
+services:
+  dns:
+    image: poeency/cloud-computing:dns-latest
+    container_name: minicloud-dns
+    networks:
+      mgmt-net:
+        ipv4_address: 10.10.3.53
+    volumes:
+      - ./bind9/named.conf:/etc/bind/named.conf:ro
+      - ./bind9/named.conf.options:/etc/bind/named.conf.options:ro
+      - ./bind9/named.conf.local:/etc/bind/named.conf.local:ro
+      - ./bind9/zones/db.cloud.local:/etc/bind/zones/db.cloud.local:ro
+    ports:
+      - "53:53/udp"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "dig @127.0.0.1 localhost || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  proxy:
+    image: nginx:alpine
+    container_name: minicloud-proxy
+    networks:
+      frontend-net:
+        ipv4_address: 10.10.1.10
+      backend-net:
+        ipv4_address: 10.10.2.10
+      mgmt-net:
+        ipv4_address: 10.10.3.10
+    dns:
+      - 10.10.3.53
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    restart: unless-stopped
+    depends_on:
+      web1:
+        condition: service_healthy
+      web2:
+        condition: service_healthy
+      app:
+        condition: service_healthy
+      app2:
+        condition: service_healthy
+      auth:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  web1:
+    image: poeency/cloud-computing:web-latest
+    container_name: minicloud-web1
+    hostname: web1
+    networks:
+      frontend-net:
+        ipv4_address: 10.10.1.11
+      mgmt-net:
+        ipv4_address: 10.10.3.11
+    dns:
+      - 10.10.3.53
+    environment:
+      - INSTANCE_ID=1
+    restart: unless-stopped
+    depends_on:
+      dns:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  web2:
+    image: poeency/cloud-computing:web-latest
+    container_name: minicloud-web2
+    hostname: web2
+    networks:
+      frontend-net:
+        ipv4_address: 10.10.1.20
+      mgmt-net:
+        ipv4_address: 10.10.3.20
+    dns:
+      - 10.10.3.53
+    environment:
+      - INSTANCE_ID=2
+    restart: unless-stopped
+    depends_on:
+      dns:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  app:
+    image: poeency/cloud-computing:app-latest
+    container_name: minicloud-app
+    networks:
+      frontend-net:
+        ipv4_address: 10.10.1.12
+      backend-net:
+        ipv4_address: 10.10.2.12
+      mgmt-net:
+        ipv4_address: 10.10.3.12
+    dns:
+      - 10.10.3.53
+    environment:
+      DB_USER: ${DB_USER:-admin}
+      REDIS_HOST: minicloud-redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_secret_123}
+      INSTANCE_ID: 1
+    secrets:
+      - db_password
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      dns:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8081/api/hello || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  app2:
+    image: poeency/cloud-computing:app-latest
+    container_name: minicloud-app2
+    networks:
+      frontend-net:
+        ipv4_address: 10.10.1.22
+      backend-net:
+        ipv4_address: 10.10.2.22
+      mgmt-net:
+        ipv4_address: 10.10.3.24
+    dns:
+      - 10.10.3.53
+    environment:
+      DB_USER: ${DB_USER:-admin}
+      REDIS_HOST: minicloud-redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_secret_123}
+      INSTANCE_ID: 2
+    secrets:
+      - db_password
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      dns:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8081/api/hello || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  auth:
+    image: poeency/cloud-computing:auth-latest
+    container_name: minicloud-auth
+    networks:
+      frontend-net:
+        ipv4_address: 10.10.1.13
+      backend-net:
+        ipv4_address: 10.10.2.13
+      mgmt-net:
+        ipv4_address: 10.10.3.13
+    dns:
+      - 10.10.3.53
+    environment:
+      KC_HEALTH_ENABLED: "true"
+      KC_HTTP_RELATIVE_PATH: /auth
+      KC_HOSTNAME_URL: "http://${SERVER_IP}:80"
+      KC_HOSTNAME_ADMIN_URL: "http://${SERVER_IP}:80"
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+      KC_HTTP_ENABLED: "true"
+      KC_PROXY: edge
+      KC_PROXY_HEADERS: xforwarded
+      KC_DB: mariadb
+      KC_DB_URL: jdbc:mariadb://minicloud-db:3306/${DB_NAME:-minicloud}
+      KC_DB_USERNAME: ${DB_USER:-admin}
+      KEYCLOAK_ADMIN: admin
+    secrets:
+      - db_password
+      - kc_admin_password
+    command: start-dev --http-port 8080
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      dns:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:9000/auth/health/ready || curl -f http://127.0.0.1:9000/health/ready || exit 0"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  db:
+    image: mariadb:10.11
+    container_name: minicloud-db
+    networks:
+      backend-net:
+        ipv4_address: 10.10.2.14
+      mgmt-net:
+        ipv4_address: 10.10.3.14
+    dns:
+      - 10.10.3.53
+    secrets:
+      - db_password
+      - db_root_password
+    environment:
+      MARIADB_DATABASE: ${DB_NAME:-minicloud}
+      MARIADB_USER: ${DB_USER:-admin}
+      MARIADB_PASSWORD_FILE: /run/secrets/db_password
+      MARIADB_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
+    restart: unless-stopped
+    depends_on:
+      dns:
+        condition: service_healthy
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "healthcheck.sh --connect --innodb_initialized"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  storage:
+    image: minio/minio
+    container_name: minicloud-storage
+    networks:
+      backend-net:
+        ipv4_address: 10.10.2.15
+    dns:
+      - 10.10.3.53
+    secrets:
+      - storage_root_user
+      - storage_root_pass
+    environment:
+      MINIO_ROOT_USER_FILE: /run/secrets/storage_root_user
+      MINIO_ROOT_PASSWORD_FILE: /run/secrets/storage_root_pass
+      MINIO_BROWSER_REDIRECT_URL: "http://${SERVER_IP}/minio/"
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+    depends_on:
+      dns:
+        condition: service_healthy
+    volumes:
+      - storage_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:9000/minio/health/live || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  monitoring:
+    image: prom/prometheus:latest
+    container_name: minicloud-monitoring
+    networks:
+      mgmt-net:
+        ipv4_address: 10.10.3.16
+      backend-net:
+        ipv4_address: 10.10.2.21
+      frontend-net:
+        ipv4_address: 10.10.1.16
+    dns:
+      - 10.10.3.53
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--web.external-url=http://${SERVER_IP}/prometheus/"
+      - "--web.route-prefix=/prometheus"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    restart: unless-stopped
+    depends_on:
+      dns:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9090/prometheus/-/healthy || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  loki:
+    image: grafana/loki:latest
+    container_name: minicloud-loki
+    networks:
+      mgmt-net:
+        ipv4_address: 10.10.3.17
+    dns:
+      - 10.10.3.53
+    restart: unless-stopped
+    depends_on:
+      dns:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/usr/bin/loki", "-version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: minicloud-grafana
+    networks:
+      mgmt-net:
+        ipv4_address: 10.10.3.18
+    dns:
+      - 10.10.3.53
+    environment:
+      - GF_SERVER_ROOT_URL=http://${SERVER_IP}/grafana/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+    restart: unless-stopped
+    depends_on:
+      monitoring:
+        condition: service_healthy
+      loki:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  mysqld-exporter:
+    image: prom/mysqld-exporter:latest
+    container_name: minicloud-mysqld-exporter
+    networks:
+      backend-net:
+        ipv4_address: 10.10.2.20
+    dns:
+      - 10.10.3.53
+    secrets:
+      - db_password
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        DB_PASS=$(cat /run/secrets/db_password)
+        echo "[client]" > /tmp/.my.cnf
+        echo "user=admin" >> /tmp/.my.cnf
+        echo "password=$DB_PASS" >> /tmp/.my.cnf
+        echo "host=minicloud-db" >> /tmp/.my.cnf
+        echo "port=3306" >> /tmp/.my.cnf
+        exec /bin/mysqld_exporter --config.my-cnf=/tmp/.my.cnf
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9104/metrics || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: minicloud-node-exporter
+    networks:
+      mgmt-net:
+        ipv4_address: 10.10.3.19
+    dns:
+      - 10.10.3.53
+    pid: host
+    privileged: true
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host/root:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--path.rootfs=/host/root"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($|/)"
+    restart: unless-stopped
+    depends_on:
+      dns:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9100 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:latest
+    container_name: minicloud-nginx-exporter
+    networks:
+      mgmt-net:
+        ipv4_address: 10.10.3.21
+      frontend-net:
+        ipv4_address: 10.10.1.21
+    dns:
+      - 10.10.3.53
+    command:
+      - "--nginx.scrape-uri=http://10.10.1.11:80/stub_status"
+    restart: unless-stopped
+    depends_on:
+      - web1
+      - web2
+
+  nginx-exporter-web2:
+    image: nginx/nginx-prometheus-exporter:latest
+    container_name: minicloud-nginx-exporter-web2
+    networks:
+      mgmt-net:
+        ipv4_address: 10.10.3.23
+      frontend-net:
+        ipv4_address: 10.10.1.23
+    dns:
+      - 10.10.3.53
+    command:
+      - "--nginx.scrape-uri=http://10.10.1.20:80/stub_status"
+    restart: unless-stopped
+    depends_on:
+      - web2
+
+  redis:
+    image: redis:7-alpine
+    container_name: minicloud-redis
+    networks:
+      backend-net:
+        ipv4_address: 10.10.2.16
+    dns:
+      - 10.10.3.53
+    command: redis-server --requirepass ${REDIS_PASSWORD:-redis_secret_123} --maxmemory 128mb --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+    depends_on:
+      dns:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-redis_secret_123}", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: minicloud-redis-exporter
+    networks:
+      backend-net:
+        ipv4_address: 10.10.2.17
+      mgmt-net:
+        ipv4_address: 10.10.3.25
+    dns:
+      - 10.10.3.53
+    environment:
+      REDIS_ADDR: "minicloud-redis:6379"
+      REDIS_PASSWORD: "${REDIS_PASSWORD:-redis_secret_123}"
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9121/metrics || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: minicloud-promtail
+    networks:
+      mgmt-net:
+        ipv4_address: 10.10.3.22
+    dns:
+      - 10.10.3.53
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - ./promtail/config.yml:/etc/promtail/config.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+    depends_on:
+      loki:
+        condition: service_healthy
+
+volumes:
+  db_data:
+  storage_data:
