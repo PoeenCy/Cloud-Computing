@@ -459,6 +459,22 @@ services:
       - web1
       - web2
 
+  nginx-exporter-web2:
+    image: nginx/nginx-prometheus-exporter:latest
+    container_name: minicloud-nginx-exporter-web2
+    networks:
+      mgmt-net:
+        ipv4_address: 10.10.3.23
+      frontend-net:
+        ipv4_address: 10.10.1.23
+    dns:
+      - 10.10.3.53
+    command:
+      - "--nginx.scrape-uri=http://10.10.1.20:80/stub_status"
+    restart: unless-stopped
+    depends_on:
+      - web2
+
   redis:
     image: redis:7-alpine
     container_name: minicloud-redis
