@@ -57,6 +57,8 @@ services:
     networks:
       frontend-net:
         ipv4_address: 10.10.1.10
+      backend-net:
+        ipv4_address: 10.10.2.10
       mgmt-net:
         ipv4_address: 10.10.3.10
     dns:
