@@ -300,6 +300,8 @@ services:
     environment:
       MINIO_ROOT_USER_FILE: /run/secrets/storage_root_user
       MINIO_ROOT_PASSWORD_FILE: /run/secrets/storage_root_pass
+      # Cho MinIO biết nó đang chạy sau reverse proxy tại /minio/
+      MINIO_BROWSER_REDIRECT_URL: "http://localhost:8088/minio/"
     command: server /data --console-address ":9001"
     restart: unless-stopped
     depends_on:
