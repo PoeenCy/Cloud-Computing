@@ -73,7 +73,11 @@ else
         --password "$KC_PASS"
         
     docker exec minicloud-auth /opt/keycloak/bin/kcadm.sh update realms/master -s sslRequired=NONE
-    echo "kcadm.sh Patch applied! SSL Required set to NONE."
+    echo "kcadm.sh Patch applied for realm 'master'! SSL Required set to NONE."
+
+    # Tắt bắt buộc SSL cho realm custom realm-52300267
+    docker exec minicloud-auth /opt/keycloak/bin/kcadm.sh update realms/realm-52300267 -s sslRequired=NONE || echo "Realm realm-52300267 might not exist yet, ignoring."
+    echo "kcadm.sh Patch applied for realm 'realm-52300267'! SSL Required set to NONE."
 fi
 
 # 6. Kiểm tra trạng thái
