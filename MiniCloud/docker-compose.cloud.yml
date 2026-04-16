@@ -88,7 +88,7 @@ services:
         # để proxy không bị lỗi khi Keycloak chưa kịp báo healthy
         condition: service_started
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1 || exit 1"]
+      test: ["CMD-SHELL", "wget -q --spider --no-check-certificate https://127.0.0.1 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -233,6 +233,7 @@ services:
       KC_DB: mariadb
       KC_DB_URL: jdbc:mariadb://minicloud-db:3306/${DB_NAME:-minicloud}
       KC_DB_USERNAME: ${DB_USER:-admin}
+      KC_DB_PASSWORD: ${DB_PASSWORD}
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
     secrets:
