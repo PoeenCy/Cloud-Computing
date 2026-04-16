@@ -10,16 +10,18 @@ else
     echo "/etc/hosts already contains $HOSTNAME"
 fi
 
-# 2. Xóa các container bị kẹt (lỗi KeyError: 'ContainerConfig' của docker-compose v1)
-echo "--- Cleaning up problematic containers ---"
-containers=("minicloud-proxy" "minicloud-auth" "minicloud-web1" "minicloud-web2" "minicloud-app" "minicloud-app2")
+# 2. Xóa sạch TOÀN BỘ các container của MiniCloud (để tránh lỗi ContainerConfig của compose v1)
+echo "--- Aggressively cleaning up all MiniCloud containers ---"
+# Lấy danh sách ID các container có tên chứa 'minicloud-' và xóa chúng
+MINICLOUD_CONTAINERS=$(docker ps -a --format '{{.Names}}' | grep "minicloud-")
 
-for container in "${containers[@]}"; do
-    if docker ps -a --format '{{.Names}}' | grep -q "^$container$"; then
-        echo "Removing $container..."
-        docker rm -f "$container"
-    fi
-done
+if [ -n "$MINICLOUD_CONTAINERS" ]; then
+    echo "Containers found: $MINICLOUD_CONTAINERS"
+    docker rm -f $MINICLOUD_CONTAINERS
+    echo "All MiniCloud containers have been removed."
+else
+    echo "No MiniCloud containers found to remove."
+fi
 
 # 3. Dựng lại hệ thống bằng docker-compose.cloud.yml
 echo "--- Deploying system on Port 80 ---"
