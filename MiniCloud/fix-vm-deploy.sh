@@ -28,7 +28,27 @@ echo "--- Deploying system on Port 80 ---"
 # Đảm bảo dùng file cloud config
 docker-compose -f docker-compose.cloud.yml up -d
 
-# 4. Kiểm tra trạng thái
+# 4. Patch lỗi "HTTPS required" của Keycloak (do chạy trên Port 80 không có SSL)
+echo "--- Patching Keycloak: Disabling SSL requirement ---"
+echo "Waiting for database to be ready..."
+RETRIES=10
+until docker exec minicloud-db mariadb -uadmin -predis_secret_123 -e "SELECT 1" >/dev/null 2>&1 || [ $RETRIES -eq 0 ]; do
+    echo "  Waiting for MariaDB... ($RETRIES retries left)"
+    sleep 5
+    RETRIES=$((RETRIES-1))
+done
+
+if [ $RETRIES -eq 0 ]; then
+    echo "Error: Database not ready, skipping patch."
+else
+    echo "MariaDB is ready. Applying patch..."
+    # Update realm master để tắt yêu cầu SSL (ssl_required = 'NONE')
+    docker exec minicloud-db mariadb -uadmin -predis_secret_123 -Dminicloud \
+        -e "UPDATE REALM SET ssl_required = 'NONE' WHERE id = 'master';"
+    echo "Patch applied! Keycloak will now allow HTTP access to the Admin Console."
+fi
+
+# 5. Kiểm tra trạng thái
 echo "--- Current Status ---"
 docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
