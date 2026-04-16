@@ -44,6 +44,14 @@ fi
 
 # 4. Dựng lại hệ thống bằng docker-compose.cloud.yml
 echo "--- Deploying system over HTTPS (Port 443) ---"
+# Đọc mật khẩu admin từ file để không bị lộ trong log hoặc file YAML
+if [ -f "./secrets/kc_admin_password.txt" ]; then
+    export KEYCLOAK_ADMIN_PASSWORD=$(cat ./secrets/kc_admin_password.txt)
+else
+    echo "Warning: secrets/kc_admin_password.txt not found. Using default 'admin'."
+    export KEYCLOAK_ADMIN_PASSWORD="admin"
+fi
+
 # Đảm bảo dùng file cloud config
 docker-compose -f docker-compose.cloud.yml up -d
 
