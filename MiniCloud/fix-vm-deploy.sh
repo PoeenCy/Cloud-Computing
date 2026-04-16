@@ -45,10 +45,38 @@ else
     # Update realm master để tắt yêu cầu SSL (ssl_required = 'NONE')
     docker exec minicloud-db mariadb -uadmin -predis_secret_123 -Dminicloud \
         -e "UPDATE REALM SET ssl_required = 'NONE' WHERE id = 'master';"
-    echo "Patch applied! Keycloak will now allow HTTP access to the Admin Console."
+    echo "SQL Patch applied!"
 fi
 
-# 5. Kiểm tra trạng thái
+# 5. Patch lỗi "HTTPS required" bằng kcadm.sh (Official way)
+echo "--- Patching Keycloak: Using kcadm.sh to disable SSL requirement ---"
+echo "Waiting for Keycloak API to be ready (Port 8080)..."
+RETRIES=20
+until docker exec minicloud-auth curl -s http://localhost:8080 >/dev/null || [ $RETRIES -eq 0 ]; do
+    echo "  Waiting for Keycloak... ($RETRIES retries left)"
+    sleep 10
+    RETRIES=$((RETRIES-1))
+done
+
+if [ $RETRIES -eq 0 ]; then
+    echo "Error: Keycloak API not ready, skipping kcadm patch."
+else
+    echo "Keycloak is ready. Authenticating and disabling SSL..."
+    # Lấy admin password từ secret file (nếu có) hoặc dùng mặc định
+    KC_PASS=$(cat ./secrets/kc_admin_password.txt 2>/dev/null || echo "admin")
+    
+    # Thực hiện login và update qua kcadm.sh bên trong container
+    docker exec minicloud-auth /opt/keycloak/bin/kcadm.sh config credentials \
+        --server http://localhost:8080 \
+        --realm master \
+        --user admin \
+        --password "$KC_PASS"
+        
+    docker exec minicloud-auth /opt/keycloak/bin/kcadm.sh update realms/master -s sslRequired=NONE
+    echo "kcadm.sh Patch applied! SSL Required set to NONE."
+fi
+
+# 6. Kiểm tra trạng thái
 echo "--- Current Status ---"
 docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
