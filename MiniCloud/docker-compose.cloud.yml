@@ -220,8 +220,8 @@ services:
     environment:
       KC_HEALTH_ENABLED: "true"
       KC_HTTP_RELATIVE_PATH: /auth
-      KC_HOSTNAME_URL: "http://${SERVER_IP}:80"
-      KC_HOSTNAME_ADMIN_URL: "http://${SERVER_IP}:80"
+      KC_HOSTNAME_URL: "http://${SERVER_IP}/auth"
+      KC_HOSTNAME_ADMIN_URL: "http://${SERVER_IP}/auth"
       KC_HOSTNAME_STRICT: "false"
       KC_HOSTNAME_STRICT_HTTPS: "false"
       KC_HTTP_ENABLED: "true"
@@ -242,7 +242,7 @@ services:
       dns:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://127.0.0.1:9000/auth/health/ready || curl -f http://127.0.0.1:9000/health/ready || exit 0"]
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:9000/auth/health/ready || curl -f http://127.0.0.1:9000/health/ready || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -378,37 +378,6 @@ services:
       timeout: 10s
       retries: 3
 
-  mysqld-exporter:
-    image: prom/mysqld-exporter:latest
-    container_name: minicloud-mysqld-exporter
-    networks:
-      backend-net:
-        ipv4_address: 10.10.2.20
-    dns:
-      - 10.10.3.53
-    secrets:
-      - db_password
-    entrypoint:
-      - /bin/sh
-      - -c
-      - |
-        DB_PASS=$(cat /run/secrets/db_password)
-        echo "[client]" > /tmp/.my.cnf
-        echo "user=admin" >> /tmp/.my.cnf
-        echo "password=$DB_PASS" >> /tmp/.my.cnf
-        echo "host=minicloud-db" >> /tmp/.my.cnf
-        echo "port=3306" >> /tmp/.my.cnf
-        exec /bin/mysqld_exporter --config.my-cnf=/tmp/.my.cnf
-    restart: unless-stopped
-    depends_on:
-      db:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:9104/metrics || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
   node-exporter:
     image: prom/node-exporter:latest
     container_name: minicloud-node-exporter
@@ -427,7 +396,7 @@ services:
       - "--path.procfs=/host/proc"
       - "--path.sysfs=/host/sys"
       - "--path.rootfs=/host/root"
-      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($|/)"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
     restart: unless-stopped
     depends_on:
       dns:
