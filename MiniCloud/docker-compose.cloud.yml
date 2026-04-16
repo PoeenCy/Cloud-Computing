@@ -82,7 +82,9 @@ services:
       app2:
         condition: service_healthy
       auth:
-        condition: service_healthy
+        # Keycloak boot chậm (~90-120s), dùng service_started thay vì service_healthy
+        # để proxy không bị lỗi khi Keycloak chưa kịp báo healthy
+        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1 || exit 1"]
       interval: 30s
@@ -243,10 +245,10 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://127.0.0.1:9000/auth/health/ready || curl -f http://127.0.0.1:9000/health/ready || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 60s
+      interval: 15s
+      timeout: 10s
+      retries: 8
+      start_period: 120s
 
   db:
     image: mariadb:10.11
