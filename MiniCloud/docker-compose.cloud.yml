@@ -222,8 +222,7 @@ services:
     environment:
       KC_HEALTH_ENABLED: "true"
       KC_HTTP_RELATIVE_PATH: /auth
-      KC_HOSTNAME_URL: "http://${SERVER_IP}/auth"
-      KC_HOSTNAME_ADMIN_URL: "http://${SERVER_IP}/auth"
+      KC_HOSTNAME: ${SERVER_IP}
       KC_HOSTNAME_STRICT: "false"
       KC_HOSTNAME_STRICT_HTTPS: "false"
       KC_HTTP_ENABLED: "true"
