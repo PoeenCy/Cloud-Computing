@@ -69,8 +69,10 @@ services:
       - 10.10.3.53
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
     restart: unless-stopped
     depends_on:
       web1:
@@ -222,7 +224,7 @@ services:
     environment:
       KC_HEALTH_ENABLED: "true"
       KC_HTTP_RELATIVE_PATH: /auth
-      KC_HOSTNAME: http://${SERVER_IP}/auth
+      KC_HOSTNAME: https://${SERVER_IP}/auth
       KC_HOSTNAME_STRICT: "false"
       KC_HOSTNAME_STRICT_HTTPS: "false"
       KC_HTTP_ENABLED: "true"
