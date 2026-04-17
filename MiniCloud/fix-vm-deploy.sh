@@ -62,31 +62,42 @@ docker-compose -f docker-compose.cloud.yml up -d
 
 # 5. Tắt bắt buộc SSL trong Keycloak (fix lỗi 400 Bad Request)
 echo "--- Waiting for Keycloak to be ready before disabling SSL requirement ---"
-KC_CONTAINER="authentication-identity-server"
+# Lấy linh động ID container của Keycloak
+KC_CONTAINER=$(docker ps -qf "name=authentication-identity-server")
 MAX_WAIT=120
 WAITED=0
 
-until docker exec "$KC_CONTAINER" /opt/keycloak/bin/kcadm.sh config credentials \
-    --server http://localhost:8080 \
-    --realm master \
-    --user admin \
-    --password admin 2>/dev/null; do
-    if [ "$WAITED" -ge "$MAX_WAIT" ]; then
-        echo "WARNING: Keycloak did not become ready in time. SSL may still be required."
-        break
-    fi
-    echo "Keycloak not ready yet, waiting 5s... ($WAITED/${MAX_WAIT}s)"
-    sleep 5
-    WAITED=$((WAITED + 5))
-done
+if [ -z "$KC_CONTAINER" ]; then
+    echo "ERROR: Could not find Keycloak container! Waiting a bit and retrying..."
+    sleep 10
+    KC_CONTAINER=$(docker ps -qf "name=authentication-identity-server")
+fi
 
-echo "Disabling SSL requirement for realm: master"
-docker exec "$KC_CONTAINER" /opt/keycloak/bin/kcadm.sh update realms/master \
-    -s sslRequired=none && echo "✓ master realm: sslRequired=none" || echo "✗ Failed to update master realm"
+if [ -n "$KC_CONTAINER" ]; then
+    until docker exec "$KC_CONTAINER" /opt/keycloak/bin/kcadm.sh config credentials \
+        --server http://localhost:8080 \
+        --realm master \
+        --user admin \
+        --password admin 2>/dev/null; do
+        if [ "$WAITED" -ge "$MAX_WAIT" ]; then
+            echo "WARNING: Keycloak did not become ready in time. SSL may still be required."
+            break
+        fi
+        echo "Keycloak not ready yet, waiting 5s... ($WAITED/${MAX_WAIT}s)"
+        sleep 5
+        WAITED=$((WAITED + 5))
+    done
 
-echo "Disabling SSL requirement for realm: TranHuuNhan_52300235"
-docker exec "$KC_CONTAINER" /opt/keycloak/bin/kcadm.sh update realms/TranHuuNhan_52300235 \
-    -s sslRequired=none && echo "✓ TranHuuNhan_52300235 realm: sslRequired=none" || echo "✗ Failed to update TranHuuNhan_52300235 realm"
+    echo "Disabling SSL requirement for realm: master"
+    docker exec "$KC_CONTAINER" /opt/keycloak/bin/kcadm.sh update realms/master \
+        -s sslRequired=none && echo "✓ master realm: sslRequired=none" || echo "✗ Failed to update master realm"
+
+    echo "Disabling SSL requirement for realm: realm_52300267"
+    docker exec "$KC_CONTAINER" /opt/keycloak/bin/kcadm.sh update realms/realm_52300267 \
+        -s sslRequired=none && echo "✓ realm_52300267: sslRequired=none" || echo "✗ Failed to update realm_52300267"
+else
+    echo "✗ ERROR: Keycloak container still not found. Cannot disable SSL."
+fi
 
 # 6. Kiểm tra trạng thái
 echo "--- Current Status ---"
