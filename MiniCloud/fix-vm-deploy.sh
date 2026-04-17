@@ -34,7 +34,11 @@ if [ ! -d "./nginx/ssl" ]; then
 fi
 
 # Luôn cập nhật thông tin IP mới nhất nếu có thể
-IP_SUBJECT=$(hostname -I | awk '{print $1}')
+# Lấy Public IP thay vì Internal IP (để Keycloak không bị redirect nhầm về IP nội bộ 10.x.x.x)
+IP_SUBJECT=$(curl -s ifconfig.me)
+if [ -z "$IP_SUBJECT" ]; then
+    IP_SUBJECT=$(hostname -I | awk '{print $1}')
+fi
 echo "Generating/Updating self-signed SSL certificate for IP: $IP_SUBJECT"
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
     -keyout ./nginx/ssl/nginx.key \
