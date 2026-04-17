@@ -1,4 +1,4 @@
-#!/bash
+#!/bin/bash
 
 # 1. Sửa lỗi /etc/hosts để sudo không báo lỗi "unable to resolve host"
 echo "--- Fixing /etc/hosts ---"
