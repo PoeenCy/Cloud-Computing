@@ -23,9 +23,9 @@ else
     echo "No MiniCloud containers found to remove."
 fi
 
-# Xóa volume DB để reset mật khẩu (Người dùng đã đồng ý)
-echo "Wiping database volume for a clean start..."
-docker volume rm minicloud_db_data 2>/dev/null || echo "Volume not found or busy, skipping."
+# Xóa volume DB chỉ khi cần thiết (comment out dòng dưới để giữ lại data)
+# docker volume rm minicloud_db_data 2>/dev/null || echo "Volume not found or busy, skipping."
+echo "Skipping DB wipe to preserve data."
 
 # 3. Tạo Chứng chỉ SSL tự động (Self-Signed) cho HTTPS
 echo "--- Ensuring SSL Certificate exists ---"
@@ -66,41 +66,41 @@ docker-compose -f docker-compose.cloud.yml up -d
 
 # 5. Tắt bắt buộc SSL trong Keycloak (fix lỗi 400 Bad Request)
 echo "--- Waiting for Keycloak to be ready before disabling SSL requirement ---"
-# Lấy linh động ID container của Keycloak
-KC_CONTAINER=$(docker ps -qf "name=authentication-identity-server")
-MAX_WAIT=120
+# Lấy linh động ID container của Keycloak (dùng đúng tên container)
+KC_CONTAINER=$(docker ps -qf "name=minicloud-auth")
+MAX_WAIT=180
 WAITED=0
 
 if [ -z "$KC_CONTAINER" ]; then
     echo "ERROR: Could not find Keycloak container! Waiting a bit and retrying..."
     sleep 10
-    KC_CONTAINER=$(docker ps -qf "name=authentication-identity-server")
+    KC_CONTAINER=$(docker ps -qf "name=minicloud-auth")
 fi
 
 if [ -n "$KC_CONTAINER" ]; then
     until docker exec "$KC_CONTAINER" /opt/keycloak/bin/kcadm.sh config credentials \
-        --server http://localhost:8080 \
+        --server http://localhost:8080/auth \
         --realm master \
         --user admin \
-        --password admin 2>/dev/null; do
+        --password "$KEYCLOAK_ADMIN_PASSWORD" 2>/dev/null; do
         if [ "$WAITED" -ge "$MAX_WAIT" ]; then
-            echo "WARNING: Keycloak did not become ready in time. SSL may still be required."
+            echo "WARNING: Keycloak did not become ready in time."
             break
         fi
-        echo "Keycloak not ready yet, waiting 5s... ($WAITED/${MAX_WAIT}s)"
-        sleep 5
-        WAITED=$((WAITED + 5))
+        echo "Keycloak not ready yet, waiting 10s... ($WAITED/${MAX_WAIT}s)"
+        sleep 10
+        WAITED=$((WAITED + 10))
     done
 
     echo "Disabling SSL requirement for realm: master"
     docker exec "$KC_CONTAINER" /opt/keycloak/bin/kcadm.sh update realms/master \
         -s sslRequired=none && echo "✓ master realm: sslRequired=none" || echo "✗ Failed to update master realm"
 
-    echo "Disabling SSL requirement for realm: realm_52300267"
-    docker exec "$KC_CONTAINER" /opt/keycloak/bin/kcadm.sh update realms/realm_52300267 \
-        -s sslRequired=none && echo "✓ realm_52300267: sslRequired=none" || echo "✗ Failed to update realm_52300267"
+    echo "Disabling SSL requirement for realm: realm-52300267"
+    docker exec "$KC_CONTAINER" /opt/keycloak/bin/kcadm.sh update realms/realm-52300267 \
+        -s sslRequired=none && echo "✓ realm-52300267: sslRequired=none" || echo "✗ Failed (realm may not exist yet)"
 else
-    echo "✗ ERROR: Keycloak container still not found. Cannot disable SSL."
+    echo "✗ ERROR: Keycloak container (minicloud-auth) still not found. Cannot disable SSL."
 fi
 
 # 6. Kiểm tra trạng thái
