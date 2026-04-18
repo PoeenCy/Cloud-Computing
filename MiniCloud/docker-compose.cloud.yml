@@ -230,6 +230,8 @@ services:
       KC_HTTP_ENABLED: "true"
       KC_PROXY: edge
       KC_PROXY_HEADERS: xforwarded
+      # Giới hạn JVM heap để tránh OOM trên VM nhỏ
+      JAVA_OPTS_APPEND: "-Xms256m -Xmx512m"
       KC_DB: mariadb
       KC_DB_URL: jdbc:mariadb://minicloud-db:3306/${DB_NAME:-minicloud}
       KC_DB_USERNAME: ${DB_USER:-admin}
