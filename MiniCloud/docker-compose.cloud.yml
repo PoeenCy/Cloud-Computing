@@ -298,7 +298,10 @@ services:
     environment:
       MINIO_ROOT_USER_FILE: /run/secrets/storage_root_user
       MINIO_ROOT_PASSWORD_FILE: /run/secrets/storage_root_pass
-      MINIO_BROWSER_REDIRECT_URL: "http://${SERVER_IP}/minio/"
+      # URL Console (giao diện quản lý)
+      MINIO_BROWSER_REDIRECT_URL: "https://${SERVER_IP}/minio/"
+      # URL API (cho upload/download và public link)
+      MINIO_SERVER_URL: "https://${SERVER_IP}/minio-api"
     command: server /data --console-address ":9001"
     restart: unless-stopped
     depends_on:
