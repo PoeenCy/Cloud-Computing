@@ -30,3 +30,4 @@ dns             IN      A       10.10.3.53
 minio           IN      A       10.10.2.15
 keycloak        IN      A       10.10.1.13
 app-backend     IN      A       10.10.1.12
+app2            IN      A       10.10.1.22

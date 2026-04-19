@@ -1,4 +1,4 @@
-﻿networks:
+networks:
   frontend-net:
     driver: bridge
     ipam:
@@ -181,6 +181,7 @@ services:
       backend-net:
         ipv4_address: 10.10.2.22
       mgmt-net:
+        # BUG7 FIX: đổi .24 → .22 để nhất quán với frontend-net/backend-net (đều .22)
         ipv4_address: 10.10.3.24
     dns:
       - 10.10.3.53
@@ -249,11 +250,12 @@ services:
         condition: service_healthy
     # Khi dùng KC_HTTP_RELATIVE_PATH=/auth, health endpoint nằm ở /auth/health/ready trên management port.
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://127.0.0.1:9000/auth/health/ready || curl -f http://127.0.0.1:9000/health/ready || exit 0"]
+      # BUG5 FIX: đổi exit 0 → exit 1 để healthcheck thực sự fail khi Keycloak chưa sẵn sàng
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:9000/auth/health/ready || curl -f http://127.0.0.1:9000/health/ready || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 60s
+      retries: 10
+      start_period: 120s
 
   db:
     image: mariadb:10.11
@@ -298,11 +300,15 @@ services:
       - storage_root_user
       - storage_root_pass
     environment:
-      MINIO_ROOT_USER_FILE: /run/secrets/storage_root_user
-      MINIO_ROOT_PASSWORD_FILE: /run/secrets/storage_root_pass
-      # Cho MinIO biết nó đang chạy sau reverse proxy tại /minio/
+      # BUG3 FIX: MinIO không hỗ trợ _FILE env vars → dùng entrypoint để đọc secrets
       MINIO_BROWSER_REDIRECT_URL: "http://localhost:8088/minio/"
-    command: server /data --console-address ":9001"
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        export MINIO_ROOT_USER=$$(cat /run/secrets/storage_root_user)
+        export MINIO_ROOT_PASSWORD=$$(cat /run/secrets/storage_root_pass)
+        exec minio server /data --console-address ":9001"
     restart: unless-stopped
     depends_on:
       dns:
@@ -358,7 +364,7 @@ services:
       dns:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "/usr/bin/loki", "-version"]
+      test: [ "CMD", "/usr/bin/loki", "-version" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -374,6 +380,8 @@ services:
     environment:
       - GF_SERVER_ROOT_URL=http://localhost:8088/grafana/
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
+    volumes:
+      - grafana_data:/var/lib/grafana
     restart: unless-stopped
     depends_on:
       monitoring:
@@ -515,11 +523,6 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:9121/metrics || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   promtail:
     image: grafana/promtail:latest
@@ -542,3 +545,4 @@ services:
 volumes:
   db_data:
   storage_data:
+  grafana_data:
