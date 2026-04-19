@@ -1,4 +1,4 @@
-﻿{
+{
     "annotations": {
         "list": []
     },
@@ -65,18 +65,99 @@
                     "fields": "",
                     "values": false
                 },
-                "textMode": "name"
+                "textMode": "value"
             },
             "pluginVersion": "10.0.0",
             "targets": [
                 {
-                    "expr": "nginx_up{job=\"nginx\", instance=\"web1\"}",
-                    "legendFormat": "Web1",
+                    "expr": "mysql_up{job=\"mysql\"}",
                     "refId": "A"
                 }
             ],
-            "title": "NGINX Web1 Status",
+            "title": "MySQL Status",
             "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "drawStyle": "line",
+                        "fillOpacity": 10,
+                        "gradientMode": "none",
+                        "hideFrom": {
+                            "tooltip": false,
+                            "viz": false,
+                            "legend": false
+                        },
+                        "lineInterpolation": "linear",
+                        "lineWidth": 1,
+                        "pointSize": 5,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "never",
+                        "spanNulls": false,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "off"
+                        }
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                }
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 6,
+                "y": 0
+            },
+            "id": 2,
+            "options": {
+                "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                },
+                "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                }
+            },
+            "targets": [
+                {
+                    "expr": "rate(mysql_global_status_queries{job=\"mysql\"}[5m])",
+                    "legendFormat": "Queries/sec",
+                    "refId": "A"
+                }
+            ],
+            "title": "MySQL Queries per Second",
+            "type": "timeseries"
         },
         {
             "datasource": {
@@ -88,43 +169,28 @@
                     "color": {
                         "mode": "thresholds"
                     },
-                    "mappings": [
-                        {
-                            "options": {
-                                "0": {
-                                    "text": "DOWN"
-                                },
-                                "1": {
-                                    "text": "UP"
-                                }
-                            },
-                            "type": "value"
-                        }
-                    ],
+                    "mappings": [],
                     "thresholds": {
                         "mode": "absolute",
                         "steps": [
                             {
-                                "color": "red",
-                                "value": null
-                            },
-                            {
                                 "color": "green",
-                                "value": 1
+                                "value": null
                             }
                         ]
-                    }
+                    },
+                    "unit": "s"
                 }
             },
             "gridPos": {
                 "h": 4,
                 "w": 6,
-                "x": 6,
-                "y": 0
+                "x": 0,
+                "y": 4
             },
-            "id": 2,
+            "id": 3,
             "options": {
-                "colorMode": "background",
+                "colorMode": "value",
                 "graphMode": "none",
                 "justifyMode": "auto",
                 "orientation": "auto",
@@ -135,17 +201,16 @@
                     "fields": "",
                     "values": false
                 },
-                "textMode": "name"
+                "textMode": "value"
             },
             "pluginVersion": "10.0.0",
             "targets": [
                 {
-                    "expr": "nginx_up{job=\"nginx\", instance=\"web2\"}",
-                    "legendFormat": "Web2",
+                    "expr": "mysql_global_status_uptime{job=\"mysql\"}",
                     "refId": "A"
                 }
             ],
-            "title": "NGINX Web2 Status",
+            "title": "MySQL Uptime",
             "type": "stat"
         },
         {
@@ -205,89 +270,7 @@
                 "h": 8,
                 "w": 12,
                 "x": 0,
-                "y": 4
-            },
-            "id": 3,
-            "options": {
-                "legend": {
-                    "calcs": [],
-                    "displayMode": "list",
-                    "placement": "bottom",
-                    "showLegend": true
-                },
-                "tooltip": {
-                    "mode": "single",
-                    "sort": "none"
-                }
-            },
-            "targets": [
-                {
-                    "expr": "nginx_connections_active{job=\"nginx\"}",
-                    "legendFormat": "{{instance}}",
-                    "refId": "A"
-                }
-            ],
-            "title": "NGINX Active Connections",
-            "type": "timeseries"
-        },
-        {
-            "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-            },
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "palette-classic"
-                    },
-                    "custom": {
-                        "axisCenteredZero": false,
-                        "axisColorMode": "text",
-                        "axisLabel": "",
-                        "axisPlacement": "auto",
-                        "barAlignment": 0,
-                        "drawStyle": "line",
-                        "fillOpacity": 10,
-                        "gradientMode": "none",
-                        "hideFrom": {
-                            "tooltip": false,
-                            "viz": false,
-                            "legend": false
-                        },
-                        "lineInterpolation": "linear",
-                        "lineWidth": 1,
-                        "pointSize": 5,
-                        "scaleDistribution": {
-                            "type": "linear"
-                        },
-                        "showPoints": "never",
-                        "spanNulls": false,
-                        "stacking": {
-                            "group": "A",
-                            "mode": "none"
-                        },
-                        "thresholdsStyle": {
-                            "mode": "off"
-                        }
-                    },
-                    "mappings": [],
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green",
-                                "value": null
-                            }
-                        ]
-                    },
-                    "unit": "reqps"
-                }
-            },
-            "gridPos": {
-                "h": 8,
-                "w": 12,
-                "x": 12,
-                "y": 4
+                "y": 8
             },
             "id": 4,
             "options": {
@@ -304,12 +287,17 @@
             },
             "targets": [
                 {
-                    "expr": "rate(nginx_connections_accepted{job=\"nginx\"}[5m])",
-                    "legendFormat": "{{instance}}",
+                    "expr": "mysql_global_status_threads_connected{job=\"mysql\"}",
+                    "legendFormat": "Connected",
                     "refId": "A"
+                },
+                {
+                    "expr": "mysql_global_status_threads_running{job=\"mysql\"}",
+                    "legendFormat": "Running",
+                    "refId": "B"
                 }
             ],
-            "title": "NGINX Requests per Second",
+            "title": "MySQL Connections",
             "type": "timeseries"
         },
         {
@@ -346,7 +334,7 @@
                         "spanNulls": false,
                         "stacking": {
                             "group": "A",
-                            "mode": "normal"
+                            "mode": "none"
                         },
                         "thresholdsStyle": {
                             "mode": "off"
@@ -368,8 +356,8 @@
             "gridPos": {
                 "h": 8,
                 "w": 12,
-                "x": 0,
-                "y": 12
+                "x": 12,
+                "y": 8
             },
             "id": 5,
             "options": {
@@ -386,89 +374,19 @@
             },
             "targets": [
                 {
-                    "expr": "nginx_connections_reading{job=\"nginx\"}",
-                    "legendFormat": "{{instance}} - Reading",
+                    "expr": "rate(mysql_global_status_commands_total{job=\"mysql\"}[5m])",
+                    "legendFormat": "{{command}}",
                     "refId": "A"
-                },
-                {
-                    "expr": "nginx_connections_writing{job=\"nginx\"}",
-                    "legendFormat": "{{instance}} - Writing",
-                    "refId": "B"
-                },
-                {
-                    "expr": "nginx_connections_waiting{job=\"nginx\"}",
-                    "legendFormat": "{{instance}} - Waiting",
-                    "refId": "C"
                 }
             ],
-            "title": "NGINX Connection States",
+            "title": "MySQL Commands",
             "type": "timeseries"
-        },
-        {
-            "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-            },
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "thresholds"
-                    },
-                    "mappings": [],
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green",
-                                "value": null
-                            }
-                        ]
-                    },
-                    "unit": "short"
-                }
-            },
-            "gridPos": {
-                "h": 8,
-                "w": 12,
-                "x": 12,
-                "y": 12
-            },
-            "id": 6,
-            "options": {
-                "colorMode": "value",
-                "graphMode": "area",
-                "justifyMode": "auto",
-                "orientation": "auto",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "textMode": "value_and_name"
-            },
-            "pluginVersion": "10.0.0",
-            "targets": [
-                {
-                    "expr": "nginx_connections_accepted{job=\"nginx\", instance=\"web1\"}",
-                    "legendFormat": "Web1 Total",
-                    "refId": "A"
-                },
-                {
-                    "expr": "nginx_connections_accepted{job=\"nginx\", instance=\"web2\"}",
-                    "legendFormat": "Web2 Total",
-                    "refId": "B"
-                }
-            ],
-            "title": "NGINX Total Connections Accepted",
-            "type": "stat"
         }
     ],
     "refresh": "5s",
     "schemaVersion": 38,
     "tags": [
-        "nginx",
+        "mysql",
         "minicloud"
     ],
     "templating": {
@@ -480,7 +398,7 @@
     },
     "timepicker": {},
     "timezone": "",
-    "title": "MiniCloud - Web Servers",
-    "uid": "minicloud-web",
+    "title": "MiniCloud - MySQL Simple",
+    "uid": "minicloud-mysql",
     "version": 1
 }
