@@ -301,7 +301,7 @@ services:
       MINIO_ROOT_USER_FILE: /run/secrets/storage_root_user
       MINIO_ROOT_PASSWORD_FILE: /run/secrets/storage_root_pass
       # URL Console (giao diện quản lý)
-      # MINIO_BROWSER_REDIRECT_URL: "https://${SERVER_IP}/minio/"
+      MINIO_BROWSER_REDIRECT_URL: "https://${SERVER_IP}/minio/"
       # URL API (cho upload/download và public link)
       # MINIO_SERVER_URL: "https://${SERVER_IP}/minio-api"
     # extra_hosts:
