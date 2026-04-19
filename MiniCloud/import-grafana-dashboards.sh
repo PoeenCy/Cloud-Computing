@@ -16,7 +16,13 @@ fi
 echo "✅ Grafana đang chạy"
 
 echo ""
-echo "📊 Tạo Prometheus data source..."
+echo "📊 Cập nhật Prometheus data source..."
+# Xóa datasource cũ nếu có
+docker exec minicloud-grafana curl -s -X DELETE \
+    -u "$GRAFANA_USER:$GRAFANA_PASS" \
+    "$GRAFANA_URL/api/datasources/name/Prometheus" > /dev/null
+
+# Tạo datasource mới với đúng uid
 docker exec minicloud-grafana curl -s -X POST \
     -H "Content-Type: application/json" \
     -u "$GRAFANA_USER:$GRAFANA_PASS" \
@@ -25,12 +31,19 @@ docker exec minicloud-grafana curl -s -X POST \
         "type": "prometheus",
         "url": "http://minicloud-monitoring:9090/prometheus",
         "access": "proxy",
-        "isDefault": true
+        "isDefault": true,
+        "uid": "prometheus"
     }' \
-    "$GRAFANA_URL/api/datasources" 2>/dev/null || echo "⚠️  Data source đã tồn tại hoặc lỗi"
+    "$GRAFANA_URL/api/datasources" 2>/dev/null || echo "⚠️  Lỗi khi tạo Prometheus data source"
 
 echo ""
-echo "📊 Tạo Loki data source..."
+echo "📊 Cập nhật Loki data source..."
+# Xóa datasource cũ nếu có
+docker exec minicloud-grafana curl -s -X DELETE \
+    -u "$GRAFANA_USER:$GRAFANA_PASS" \
+    "$GRAFANA_URL/api/datasources/name/Loki" > /dev/null
+
+# Tạo datasource mới với đúng uid
 docker exec minicloud-grafana curl -s -X POST \
     -H "Content-Type: application/json" \
     -u "$GRAFANA_USER:$GRAFANA_PASS" \
@@ -38,9 +51,10 @@ docker exec minicloud-grafana curl -s -X POST \
         "name": "Loki",
         "type": "loki",
         "url": "http://minicloud-loki:3100",
-        "access": "proxy"
+        "access": "proxy",
+        "uid": "loki"
     }' \
-    "$GRAFANA_URL/api/datasources" 2>/dev/null || echo "⚠️  Data source đã tồn tại hoặc lỗi"
+    "$GRAFANA_URL/api/datasources" 2>/dev/null || echo "⚠️  Lỗi khi tạo Loki data source"
 
 echo ""
 echo "📂 Import dashboards từ $DASHBOARD_DIR..."

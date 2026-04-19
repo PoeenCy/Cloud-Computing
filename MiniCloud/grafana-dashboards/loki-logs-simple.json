@@ -34,10 +34,7 @@
                     "datasource": {
                         "type": "loki"
                     },
-                    "editorMode": "code",
-                    "expr": "{service_name=\"unknown_service\"}",
-                    "queryType": "range",
-                    "refId": "A"
+                    "expr": "{job=~\".+\"}",
                 }
             ],
             "title": "All Application Logs",
@@ -69,10 +66,7 @@
                     "datasource": {
                         "type": "loki"
                     },
-                    "editorMode": "code",
-                    "expr": "{service_name=\"unknown_service\"} |~ \"(?i)error\"",
-                    "queryType": "range",
-                    "refId": "A"
+                    "expr": "{job=~\".+\"} |~ \"(?i)error\"",
                 }
             ],
             "title": "Error Logs",
@@ -104,10 +98,7 @@
                     "datasource": {
                         "type": "loki"
                     },
-                    "editorMode": "code",
-                    "expr": "{service_name=\"unknown_service\"} |~ \"(?i)warn\"",
-                    "queryType": "range",
-                    "refId": "A"
+                    "expr": "{job=~\".+\"} |~ \"(?i)warn\"",
                 }
             ],
             "title": "Warning Logs",
@@ -188,10 +179,7 @@
                     "datasource": {
                         "type": "loki"
                     },
-                    "editorMode": "code",
-                    "expr": "sum(count_over_time({service_name=\"unknown_service\"}[1m]))",
-                    "queryType": "range",
-                    "refId": "A"
+                    "expr": "sum(count_over_time({job=~\".+\"}[1m]))",
                 }
             ],
             "title": "Log Rate (logs per minute)",
