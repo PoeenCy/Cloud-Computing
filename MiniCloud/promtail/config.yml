@@ -15,21 +15,16 @@ scrape_configs:
       - host: unix:///var/run/docker.sock
         refresh_interval: 5s
     relabel_configs:
-      # Chỉ scrape containers có label logging=promtail
-      - source_labels: ['__meta_docker_container_label_logging']
-        regex: 'promtail'
-        action: keep
-      
       # Lấy tên container
       - source_labels: ['__meta_docker_container_name']
         regex: '/(.*)'
-        target_label: 'container'
+        target_label: 'container_name'
       
       # Lấy container ID
       - source_labels: ['__meta_docker_container_id']
         target_label: 'container_id'
       
-      # Lấy image name
+      # Lấy service name từ docker-compose
       - source_labels: ['__meta_docker_container_label_com_docker_compose_service']
         target_label: 'service'
       
