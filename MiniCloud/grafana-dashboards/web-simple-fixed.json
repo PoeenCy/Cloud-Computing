@@ -70,7 +70,7 @@
             "pluginVersion": "10.0.0",
             "targets": [
                 {
-                    "expr": "nginx_up{job=\"nginx\", instance=\"web1\"}",
+                    "expr": "nginx_up{job=\"web\", instance=\"web1\"}",
                     "legendFormat": "Web1",
                     "refId": "A"
                 }
@@ -140,7 +140,7 @@
             "pluginVersion": "10.0.0",
             "targets": [
                 {
-                    "expr": "nginx_up{job=\"nginx\", instance=\"web2\"}",
+                    "expr": "nginx_up{job=\"web\", instance=\"web2\"}",
                     "legendFormat": "Web2",
                     "refId": "A"
                 }
@@ -222,7 +222,7 @@
             },
             "targets": [
                 {
-                    "expr": "nginx_connections_active{job=\"nginx\"}",
+                    "expr": "nginx_connections_active{job=\"web\"}",
                     "legendFormat": "{{instance}}",
                     "refId": "A"
                 }
@@ -304,7 +304,7 @@
             },
             "targets": [
                 {
-                    "expr": "rate(nginx_connections_accepted{job=\"nginx\"}[5m])",
+                    "expr": "rate(nginx_connections_accepted{job=\"web\"}[5m])",
                     "legendFormat": "{{instance}}",
                     "refId": "A"
                 }
@@ -386,17 +386,17 @@
             },
             "targets": [
                 {
-                    "expr": "nginx_connections_reading{job=\"nginx\"}",
+                    "expr": "nginx_connections_reading{job=\"web\"}",
                     "legendFormat": "{{instance}} - Reading",
                     "refId": "A"
                 },
                 {
-                    "expr": "nginx_connections_writing{job=\"nginx\"}",
+                    "expr": "nginx_connections_writing{job=\"web\"}",
                     "legendFormat": "{{instance}} - Writing",
                     "refId": "B"
                 },
                 {
-                    "expr": "nginx_connections_waiting{job=\"nginx\"}",
+                    "expr": "nginx_connections_waiting{job=\"web\"}",
                     "legendFormat": "{{instance}} - Waiting",
                     "refId": "C"
                 }
@@ -451,12 +451,12 @@
             "pluginVersion": "10.0.0",
             "targets": [
                 {
-                    "expr": "nginx_connections_accepted{job=\"nginx\", instance=\"web1\"}",
+                    "expr": "nginx_connections_accepted{job=\"web\", instance=\"web1\"}",
                     "legendFormat": "Web1 Total",
                     "refId": "A"
                 },
                 {
-                    "expr": "nginx_connections_accepted{job=\"nginx\", instance=\"web2\"}",
+                    "expr": "nginx_connections_accepted{job=\"web\", instance=\"web2\"}",
                     "legendFormat": "Web2 Total",
                     "refId": "B"
                 }

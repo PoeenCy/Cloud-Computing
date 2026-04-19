@@ -10,7 +10,8 @@
     "panels": [
         {
             "datasource": {
-                "type": "loki"
+                "type": "loki",
+                "uid": "loki"
             },
             "gridPos": {
                 "h": 12,
@@ -32,7 +33,8 @@
             "targets": [
                 {
                     "datasource": {
-                        "type": "loki"
+                        "type": "loki",
+                "uid": "loki"
                     },
                     "expr": "{job=~\".+\"}",
                 }
@@ -42,7 +44,8 @@
         },
         {
             "datasource": {
-                "type": "loki"
+                "type": "loki",
+                "uid": "loki"
             },
             "gridPos": {
                 "h": 8,
@@ -64,7 +67,8 @@
             "targets": [
                 {
                     "datasource": {
-                        "type": "loki"
+                        "type": "loki",
+                "uid": "loki"
                     },
                     "expr": "{job=~\".+\"} |~ \"(?i)error\"",
                 }
@@ -74,7 +78,8 @@
         },
         {
             "datasource": {
-                "type": "loki"
+                "type": "loki",
+                "uid": "loki"
             },
             "gridPos": {
                 "h": 8,
@@ -96,7 +101,8 @@
             "targets": [
                 {
                     "datasource": {
-                        "type": "loki"
+                        "type": "loki",
+                "uid": "loki"
                     },
                     "expr": "{job=~\".+\"} |~ \"(?i)warn\"",
                 }
@@ -106,7 +112,8 @@
         },
         {
             "datasource": {
-                "type": "loki"
+                "type": "loki",
+                "uid": "loki"
             },
             "fieldConfig": {
                 "defaults": {
@@ -177,7 +184,8 @@
             "targets": [
                 {
                     "datasource": {
-                        "type": "loki"
+                        "type": "loki",
+                "uid": "loki"
                     },
                     "expr": "sum(count_over_time({job=~\".+\"}[1m]))",
                 }
