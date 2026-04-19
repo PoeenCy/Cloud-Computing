@@ -25,7 +25,7 @@
         {
             "datasource": {
                 "type": "loki",
-                "uid": "${DS_LOKI}"
+                "uid": "loki"
             },
             "gridPos": {
                 "h": 10,
@@ -48,10 +48,10 @@
                 {
                     "datasource": {
                         "type": "loki",
-                        "uid": "${DS_LOKI}"
+                        "uid": "loki"
                     },
                     "editorMode": "code",
-                    "expr": "{service_name=\"unknown_service\"}",
+                    "expr": "{job=~\".+\"}",
                     "queryType": "range",
                     "refId": "A"
                 }
@@ -62,7 +62,7 @@
         {
             "datasource": {
                 "type": "loki",
-                "uid": "${DS_LOKI}"
+                "uid": "loki"
             },
             "gridPos": {
                 "h": 8,
@@ -85,10 +85,10 @@
                 {
                     "datasource": {
                         "type": "loki",
-                        "uid": "${DS_LOKI}"
+                        "uid": "loki"
                     },
                     "editorMode": "code",
-                    "expr": "{service_name=\"unknown_service\"} |= \"error\" or \"Error\" or \"ERROR\"",
+                    "expr": "{job=~\".+\"} |= \"error\" or \"Error\" or \"ERROR\"",
                     "queryType": "range",
                     "refId": "A"
                 }
@@ -99,7 +99,7 @@
         {
             "datasource": {
                 "type": "loki",
-                "uid": "${DS_LOKI}"
+                "uid": "loki"
             },
             "gridPos": {
                 "h": 8,
@@ -122,10 +122,10 @@
                 {
                     "datasource": {
                         "type": "loki",
-                        "uid": "${DS_LOKI}"
+                        "uid": "loki"
                     },
                     "editorMode": "code",
-                    "expr": "{service_name=\"unknown_service\"} |= \"warn\" or \"Warn\" or \"WARN\" or \"warning\" or \"Warning\"",
+                    "expr": "{job=~\".+\"} |= \"warn\" or \"Warn\" or \"WARN\" or \"warning\" or \"Warning\"",
                     "queryType": "range",
                     "refId": "A"
                 }
@@ -136,7 +136,7 @@
         {
             "datasource": {
                 "type": "loki",
-                "uid": "${DS_LOKI}"
+                "uid": "loki"
             },
             "fieldConfig": {
                 "defaults": {
@@ -210,10 +210,10 @@
                 {
                     "datasource": {
                         "type": "loki",
-                        "uid": "${DS_LOKI}"
+                        "uid": "loki"
                     },
                     "editorMode": "code",
-                    "expr": "sum(count_over_time({service_name=\"unknown_service\"}[1m]))",
+                    "expr": "sum(count_over_time({job=~\".+\"}[1m]))",
                     "queryType": "range",
                     "refId": "A"
                 }
