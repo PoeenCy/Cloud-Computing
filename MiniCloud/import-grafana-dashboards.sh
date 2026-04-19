@@ -57,6 +57,17 @@ docker exec minicloud-grafana curl -s -X POST \
     "$GRAFANA_URL/api/datasources" 2>/dev/null || echo "⚠️  Lỗi khi tạo Loki data source"
 
 echo ""
+echo "📂 Lấy thông tin UID thực tế của Datasource từ Grafana..."
+PROM_UID=$(docker exec minicloud-grafana curl -s -u "$GRAFANA_USER:$GRAFANA_PASS" "$GRAFANA_URL/api/datasources/name/Prometheus" | grep -o '"uid":"[^"]*"' | head -1 | cut -d'"' -f4)
+LOKI_UID=$(docker exec minicloud-grafana curl -s -u "$GRAFANA_USER:$GRAFANA_PASS" "$GRAFANA_URL/api/datasources/name/Loki" | grep -o '"uid":"[^"]*"' | head -1 | cut -d'"' -f4)
+
+if [ -z "$PROM_UID" ]; then PROM_UID="prometheus"; fi
+if [ -z "$LOKI_UID" ]; then LOKI_UID="loki"; fi
+
+echo "Prometheus UID: $PROM_UID"
+echo "Loki UID: $LOKI_UID"
+
+echo ""
 echo "📂 Import dashboards từ $DASHBOARD_DIR..."
 
 for dashboard_file in "$DASHBOARD_DIR"/*.json; do
@@ -65,8 +76,8 @@ for dashboard_file in "$DASHBOARD_DIR"/*.json; do
         echo ""
         echo "📥 Đang import: $dashboard_name"
         
-        # Đọc nội dung dashboard
-        dashboard_json=$(cat "$dashboard_file")
+        # Đọc nội dung dashboard và thay thế UID
+        dashboard_json=$(cat "$dashboard_file" | sed "s/\"uid\": \"prometheus\"/\"uid\": \"$PROM_UID\"/g" | sed "s/\"uid\": \"loki\"/\"uid\": \"$LOKI_UID\"/g")
         
         # Tạo payload cho Grafana API
         payload=$(cat <<EOF
